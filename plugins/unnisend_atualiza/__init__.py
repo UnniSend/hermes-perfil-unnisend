@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -63,15 +64,25 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
         try:
             env = dict(os.environ)
             env.pop("HERMES_HOME", None)
-            subprocess.run(
+            # Usa o mesmo Python em que o Hermes está rodando (o venv dele), nunca o python do sistema.
+            r = subprocess.run(
                 [sys.executable, "-m", "hermes_cli.main", "profile", "update", PERFIL, "-y", "--force-config"],
-                env=env, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                timeout=180, check=False,
+                env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=180, check=False,
             )
+            if r.returncode != 0:
+                hermes = shutil.which("hermes") or str(Path.home() / ".local/bin/hermes")
+                r = subprocess.run(
+                    [hermes, "profile", "update", PERFIL, "-y", "--force-config"],
+                    env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=180, check=False,
+                )
+            ok = r.returncode == 0 and _versao_instalada() == nova
             with _trava:
                 _estado["aviso"] = (
                     f"[Perfil da UnniSend atualizado para a versão {nova} em segundo plano. "
                     "Regras e agentes novos valem a partir da próxima conversa; suas mensagens e sua chave não mudaram.]"
+                    if ok else
+                    f"[Há uma versão nova do perfil da UnniSend ({nova}), mas a atualização automática falhou. "
+                    "Feche e abra o unnisend; se continuar, avise o Israel.]"
                 )
         except Exception:
             pass
@@ -84,9 +95,8 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
 def _pre_llm_call(**kw):
     agora = time.time()
     with _trava:
-        aviso = _estado.pop("aviso", None)
-        if aviso:
-            _estado["aviso"] = None
+        aviso = _estado["aviso"]
+        _estado["aviso"] = None
         if agora - _estado["ultima_checagem"] < INTERVALO or _estado["atualizando"]:
             return {"context": aviso} if aviso else None
         _estado["ultima_checagem"] = agora
