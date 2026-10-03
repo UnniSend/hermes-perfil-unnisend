@@ -33,4 +33,4 @@ Além da memória individual (no seu computador), o Hermes lembra fatos comparti
 
 O instalador grava a sua chave também como `HINDSIGHT_API_KEY` no `.env` do perfil (o plugin de memória lê por esse nome). Se a memória da empresa parar de responder, confira com o Israel se a sua chave continua ativa.
 
-<!-- marca de prova 0.2.2 -->
+<!-- marca de prova 0.2.3 -->
