@@ -20,7 +20,7 @@ import time
 import urllib.request
 from pathlib import Path
 
-PERFIL = "unnisend"
+PERFIL = Path(__file__).resolve().parents[2].name  # nome do perfil instalado (unnisend)
 REPO_RAW = "https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/distribution.yaml"
 INTERVALO = int(os.environ.get("UNNISEND_ATUALIZA_INTERVALO", "1800"))  # 30 min
 _estado = {"ultima_checagem": 0.0, "versao_remota": None, "atualizando": False, "aviso": None}

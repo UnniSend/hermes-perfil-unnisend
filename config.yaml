@@ -59,4 +59,5 @@ onboarding:
 plugins:
   enabled:
     - hindsight
+    - unnisend_atualiza
   disabled: []
