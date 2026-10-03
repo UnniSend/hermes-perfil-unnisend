@@ -1,0 +1,15 @@
+{
+  "mode": "local_external",
+  "api_url": "https://porteiro-production-2abf.up.railway.app",
+  "bank_id": "auto",
+  "recall_budget": "low",
+  "memory_mode": "hybrid",
+  "auto_recall": true,
+  "recall_sync": true,
+  "auto_retain": true,
+  "retain_async": true,
+  "retain_every_n_turns": 3,
+  "retain_context": "conversa de trabalho entre o Hermes e uma pessoa da UnniSend; preservar decisoes, combinados, nomes de projetos e contexto duravel da area; estados temporarios devem ter data explicita",
+  "retain_source": "hermes-unnisend",
+  "recall_prompt_preamble": "# Memoria da empresa (UnniSend)\nFatos compartilhados da sua area e gerais da empresa, lembrados pelo porteiro de memoria. Prefira o fato mais recente quando houver conflito. Se nada responder a pergunta, diga que a memoria da empresa nao tem a resposta; nunca invente."
+}

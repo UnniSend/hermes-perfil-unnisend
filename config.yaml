@@ -41,12 +41,14 @@ agent:
   language: pt-BR
 
 # Memória individual local fica ligada (preferências e contexto da pessoa).
-# A memória compartilhada da empresa (Hindsight da UnniSend) entra no ciclo 2, por um
-# serviço autorizado; a chave administrativa do Hindsight nunca vai para o computador do membro.
+# Memória compartilhada da empresa: plugin hindsight apontando para o porteiro de memória
+# (hindsight/config.json). A chave usada é a MESMA chave individual do OmniRoute
+# (HINDSIGHT_API_KEY no .env, gravada pelo instalador); a chave administrativa do Hindsight
+# fica só no servidor. O porteiro decide os bancos (área da pessoa + geral).
 memory:
   memory_enabled: true
   user_profile_enabled: true
-  provider: builtin
+  provider: hindsight
 telemetry:
   shared_metrics:
     enabled: false
@@ -54,3 +56,7 @@ telemetry:
 onboarding:
   seen:
     openclaw_residue_cleanup: true
+plugins:
+  enabled:
+    - hindsight
+  disabled: []

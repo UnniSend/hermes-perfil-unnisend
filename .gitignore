@@ -55,3 +55,4 @@ cron/ticker_*
 source-checks/
 telemetry/
 skills/
+plugins/

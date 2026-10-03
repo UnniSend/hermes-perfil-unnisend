@@ -48,6 +48,21 @@ if ! grep -qs '^UNNISEND_OMNIROUTE_KEY=sk-' "$ENV_PERFIL" 2>/dev/null; then
   unset CHAVE
 fi
 
+# 3b) Memória da empresa: o plugin hindsight do Hermes lê a chave em HINDSIGHT_API_KEY e o .env
+# não expande ${...}; então gravamos a MESMA chave pessoal nessa variável. Nada novo entra no computador.
+CHAVE_ATUAL="$(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" | cut -d= -f2-)"
+grep -v '^HINDSIGHT_API_KEY=' "$ENV_PERFIL" > "$ENV_PERFIL.tmp" 2>/dev/null || true
+printf 'HINDSIGHT_API_KEY=%s\n' "$CHAVE_ATUAL" >> "$ENV_PERFIL.tmp"
+mv "$ENV_PERFIL.tmp" "$ENV_PERFIL"; chmod 600 "$ENV_PERFIL"
+unset CHAVE_ATUAL
+
+# 3c) Plugin de memória (uma vez; o perfil já traz a configuração que aponta para o porteiro da empresa)
+if [ ! -d "$HERMES_HOME/profiles/$PERFIL/plugins/hindsight" ]; then
+  diga "Instalando o plugin de memória da empresa..."
+  hermes -p "$PERFIL" plugins install hindsight >/dev/null 2>&1 || true
+fi
+hermes -p "$PERFIL" plugins enable hindsight >/dev/null 2>&1 || true
+
 # 4) Atalho que atualiza o perfil sozinho (silencioso) e abre o chat
 mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/unnisend" <<'ATALHO'

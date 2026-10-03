@@ -42,6 +42,21 @@ if (-not $temChave) {
   $chave = $null
 }
 
+# 3b) Memoria da empresa: o plugin hindsight le a chave em HINDSIGHT_API_KEY e o .env nao expande ${...};
+# gravamos a MESMA chave pessoal nessa variavel. Nada novo entra no computador.
+$chaveAtual = ((Get-Content $EnvPerfil | Where-Object { $_ -match '^UNNISEND_OMNIROUTE_KEY=' }) -replace '^UNNISEND_OMNIROUTE_KEY=','')
+$linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^HINDSIGHT_API_KEY=' }
+$linhas += "HINDSIGHT_API_KEY=$chaveAtual"
+Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
+$chaveAtual = $null
+
+# 3c) Plugin de memoria (uma vez; o perfil ja traz a configuracao que aponta para o porteiro da empresa)
+if (-not (Test-Path (Join-Path $HermesHome "profiles\$Perfil\plugins\hindsight"))) {
+  Diga "Instalando o plugin de memoria da empresa..."
+  try { hermes -p $Perfil plugins install hindsight | Out-Null } catch {}
+}
+try { hermes -p $Perfil plugins enable hindsight | Out-Null } catch {}
+
 # 4) Atalho "unnisend" que atualiza o perfil sozinho e abre o chat
 $bin = Join-Path $HOME ".local\bin"; New-Item -ItemType Directory -Force -Path $bin | Out-Null
 @'
