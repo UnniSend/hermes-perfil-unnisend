@@ -1,0 +1,7 @@
+name: unnisend_atualiza
+version: 0.1.0
+description: "Atualiza o perfil da UnniSend sozinho, mesmo com o Hermes aberto: checa a versão publicada a cada 30 minutos antes de responder e aplica a nova em segundo plano."
+author: "UnniSend"
+provides_hooks:
+  - pre_llm_call
+requires_env: []

@@ -1,17 +1,14 @@
 name: unnisend
-version: 0.2.0
-description: "Assistente de trabalho da UnniSend: Hermes no computador do membro, IA pelo OmniRoute central da empresa"
-hermes_requires: ">=0.21.0"
-author: "UnniSend"
-license: "Proprietary"
-
-# A chave é individual, criada pelo admin no OmniRoute da empresa e entregue a cada pessoa.
+version: 0.2.1
+description: 'Assistente de trabalho da UnniSend: Hermes no computador do membro,
+  IA pelo OmniRoute central da empresa'
+hermes_requires: '>=0.21.0'
+author: UnniSend
+license: Proprietary
 env_requires:
   - name: UNNISEND_OMNIROUTE_KEY
-    description: "Sua chave pessoal do OmniRoute da UnniSend (peça ao Israel). Começa com sk-"
-    required: true
-
-# Arquivos que o perfil entrega e atualiza (o resto, como .env, plugins instalados e conversas, e da pessoa).
+    description: Sua chave pessoal do OmniRoute da UnniSend (peça ao Israel). 
+      Começa com sk-
 distribution_owned:
   - SOUL.md
   - config.yaml
@@ -19,3 +16,7 @@ distribution_owned:
   - instalar.sh
   - instalar.ps1
   - README.md
+  - plugins/unnisend_atualiza/__init__.py
+  - plugins/unnisend_atualiza/plugin.yaml
+source: github.com/UnniSend/hermes-perfil-unnisend
+installed_at: '2026-10-03T22:03:01+00:00'

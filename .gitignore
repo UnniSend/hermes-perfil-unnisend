@@ -55,4 +55,6 @@ cron/ticker_*
 source-checks/
 telemetry/
 skills/
-plugins/
+
+plugins/*
+!plugins/unnisend_atualiza/
