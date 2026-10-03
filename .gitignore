@@ -1,0 +1,57 @@
+# Segredos e identidade: NUNCA versionar
+auth.json
+.env
+.env.EXAMPLE
+pairing/
+
+# Estado de execução
+state.db
+state.db-shm
+state.db-wal
+hermes_state.db
+response_store.db
+response_store.db-shm
+response_store.db-wal
+gateway.pid
+gateway_state.json
+processes.json
+auth.lock
+active_profile
+.update_check
+.no-bundled-skills
+backups/
+hooks/
+platforms/
+skins/
+
+# Dados da pessoa: NUNCA versionar
+memories/
+sessions/
+logs/
+plans/
+workspace/
+home/
+
+# Caches
+image_cache/
+audio_cache/
+document_cache/
+browser_screenshots/
+cache/
+.DS_Store
+
+# Estado de execução adicional (gerado ao usar o perfil)
+.hermes_history
+.skills_prompt_snapshot.json
+models_dev_cache.*
+provider_models_cache.json
+plugin-update-checks/
+projects.db
+runtime/
+terminal-sessions/
+*.lock
+cron/executions.db
+cron/ticker_*
+source-checks/
+telemetry/
+skills/

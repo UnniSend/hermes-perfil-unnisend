@@ -1,0 +1,56 @@
+_config_version: 49
+
+# Perfil empresarial UnniSend (MVP, ciclo 1).
+# Toda chamada de IA passa pelo OmniRoute central da empresa. A chave individual de cada
+# membro fica SÓ no .env local (UNNISEND_OMNIROUTE_KEY), nunca neste arquivo.
+model:
+  provider: custom
+  base_url: https://omniroute.unnichat.com.br/v1
+  default: auto/claude-sonnet
+  key_env: UNNISEND_OMNIROUTE_KEY
+
+custom_providers:
+  - name: OmniRoute UnniSend
+    base_url: https://omniroute.unnichat.com.br/v1
+    key_env: UNNISEND_OMNIROUTE_KEY
+    model: auto/claude-sonnet
+    models:
+      auto/claude-sonnet: {}
+      auto/claude-opus: {}
+      auto/claude-haiku: {}
+      auto/smart: {}
+      auto/cheap: {}
+      auto/best-vision: {}
+
+auxiliary:
+  vision:
+    provider: custom
+    base_url: https://omniroute.unnichat.com.br/v1
+    model: auto/best-vision
+  compression:
+    provider: custom
+    base_url: https://omniroute.unnichat.com.br/v1
+    model: auto/claude-haiku
+  title_generation:
+    provider: custom
+    base_url: https://omniroute.unnichat.com.br/v1
+    model: auto/claude-haiku
+    language: pt-BR
+
+agent:
+  language: pt-BR
+
+# Memória individual local fica ligada (preferências e contexto da pessoa).
+# A memória compartilhada da empresa (Hindsight da UnniSend) entra no ciclo 2, por um
+# serviço autorizado; a chave administrativa do Hindsight nunca vai para o computador do membro.
+memory:
+  memory_enabled: true
+  user_profile_enabled: true
+  provider: builtin
+telemetry:
+  shared_metrics:
+    enabled: false
+    send: false
+onboarding:
+  seen:
+    openclaw_residue_cleanup: true
