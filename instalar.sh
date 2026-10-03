@@ -24,7 +24,7 @@ command -v hermes >/dev/null 2>&1 || { echo "O Hermes não ficou disponível no 
 # 2) Perfil da empresa (instala ou atualiza; suas conversas e chave não são tocadas)
 if [ -d "$HERMES_HOME/profiles/$PERFIL" ]; then
   diga "Atualizando o perfil $PERFIL..."
-  hermes profile update "$PERFIL" || true
+  hermes profile update "$PERFIL" -y --force-config || true
 else
   diga "Instalando o perfil $PERFIL..."
   hermes profile install "$REPO" --alias -y
@@ -48,7 +48,18 @@ if ! grep -qs '^UNNISEND_OMNIROUTE_KEY=sk-' "$ENV_PERFIL" 2>/dev/null; then
   unset CHAVE
 fi
 
-# 4) Prova rápida: a chave fala com o OmniRoute da empresa?
+# 4) Atalho que atualiza o perfil sozinho (silencioso) e abre o chat
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/unnisend" <<'ATALHO'
+#!/usr/bin/env bash
+# Abre o Hermes com o perfil da UnniSend. Antes, puxa a versão mais nova do perfil (sem mexer na sua chave nem nas suas conversas).
+export PATH="$HOME/.local/bin:$PATH"
+( hermes profile update unnisend -y --force-config >/dev/null 2>&1 || true )
+exec hermes -p unnisend "${@:-chat}"
+ATALHO
+chmod +x "$HOME/.local/bin/unnisend"
+
+# 5) Prova rápida: a chave fala com o OmniRoute da empresa?
 diga "Testando a conexão com o OmniRoute da UnniSend..."
 CHAVE_TESTE="$(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" | cut -d= -f2-)"
 CODIGO="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -H "Authorization: Bearer $CHAVE_TESTE" https://omniroute.unnichat.com.br/v1/models || echo 000)"

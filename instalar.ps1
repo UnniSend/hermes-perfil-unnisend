@@ -21,7 +21,7 @@ if (-not (Get-Command hermes -ErrorAction SilentlyContinue)) {
 # 2) Perfil da empresa
 if (Test-Path (Join-Path $HermesHome "profiles\$Perfil")) {
   Diga "Atualizando o perfil $Perfil..."
-  hermes profile update $Perfil
+  hermes profile update $Perfil -y --force-config
 } else {
   Diga "Instalando o perfil $Perfil..."
   hermes profile install $Repo --alias -y
@@ -42,7 +42,17 @@ if (-not $temChave) {
   $chave = $null
 }
 
-# 4) Prova rápida
+# 4) Atalho "unnisend" que atualiza o perfil sozinho e abre o chat
+$bin = Join-Path $HOME ".local\bin"; New-Item -ItemType Directory -Force -Path $bin | Out-Null
+@'
+@echo off
+hermes profile update unnisend -y --force-config >nul 2>&1
+if "%~1"=="" (hermes -p unnisend chat) else (hermes -p unnisend %*)
+'@ | Set-Content -Path (Join-Path $bin "unnisend.cmd") -Encoding ascii
+$userPath = [Environment]::GetEnvironmentVariable("Path","User")
+if ($userPath -notlike "*$bin*") { [Environment]::SetEnvironmentVariable("Path", "$bin;$userPath", "User") }
+
+# 5) Prova rápida
 Diga "Testando a conexão com o OmniRoute da UnniSend..."
 $k = (Get-Content $EnvPerfil | Where-Object { $_ -match '^UNNISEND_OMNIROUTE_KEY=' }) -replace '^UNNISEND_OMNIROUTE_KEY=',''
 try {
