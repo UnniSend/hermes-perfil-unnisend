@@ -33,4 +33,25 @@ Além da memória individual (no seu computador), o Hermes lembra fatos comparti
 
 O instalador grava a sua chave também como `HINDSIGHT_API_KEY` no `.env` do perfil (o plugin de memória lê por esse nome). Se a memória da empresa parar de responder, confira com o Israel se a sua chave continua ativa.
 
-<!-- marca de prova 0.2.5 -->
+## Agentes do time
+
+Dentro do mesmo perfil há um time de agentes, cada um com uma função. Você escolhe de três jeitos:
+
+    unnisend buchecha           abre direto com o Buchecha
+    /buchecha                   troca de agente dentro da conversa (vale a partir da próxima mensagem)
+    "Buchecha, resume isto"     o nome no começo da mensagem troca só para aquela conversa
+
+    /agentes                    lista o time
+
+| Agente   | Função                                   | Para quem                     |
+| -------- | ---------------------------------------- | ----------------------------- |
+| Michael  | Orquestrador: entende o pedido, organiza o caminho e aciona o especialista. Nunca decide sozinho: propõe opções e pergunta ao Israel. | Todos (padrão ao abrir) |
+| Buchecha | Projetos: status, risco, próximo passo, dono | Todos |
+| Dwight   | Regras e processos da empresa             | Todos |
+| Phyllis  | Eventos: briefing e abertura de projetos de evento | Marketing |
+| Jim      | Comercial e comunicação: metas, funil, mensagens | Comercial, Marketing, Suporte |
+| Ryan     | Marketing e os agentes de marketing do Torriani | Marketing |
+| Angela   | Entregáveis e financeiro                  | Só Gestão |
+| Holly    | Pessoas e cultura                         | Só Gestão |
+
+Cada chamada à IA sai marcada com o agente em uso, então o Israel vê no painel do OmniRoute quem usou qual agente.
