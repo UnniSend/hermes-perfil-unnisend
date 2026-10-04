@@ -58,3 +58,4 @@ skills/
 
 plugins/*
 !plugins/unnisend_atualiza/
+!plugins/unnisend_agentes/

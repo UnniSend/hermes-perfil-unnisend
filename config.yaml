@@ -1,27 +1,23 @@
 _config_version: 49
-
-# Perfil empresarial UnniSend (MVP, ciclo 1).
-# Toda chamada de IA passa pelo OmniRoute central da empresa. A chave individual de cada
-# membro fica SÓ no .env local (UNNISEND_OMNIROUTE_KEY), nunca neste arquivo.
 model:
   provider: custom
   base_url: https://omniroute.unnichat.com.br/v1
   default: auto/claude-sonnet
   key_env: UNNISEND_OMNIROUTE_KEY
-
+  default_headers:
+    x-omniroute-session-id: ${UNNISEND_SESSAO}
 custom_providers:
-  - name: OmniRoute UnniSend
-    base_url: https://omniroute.unnichat.com.br/v1
-    key_env: UNNISEND_OMNIROUTE_KEY
-    model: auto/claude-sonnet
-    models:
-      auto/claude-sonnet: {}
-      auto/claude-opus: {}
-      auto/claude-haiku: {}
-      auto/smart: {}
-      auto/cheap: {}
-      auto/best-vision: {}
-
+- name: OmniRoute UnniSend
+  base_url: https://omniroute.unnichat.com.br/v1
+  key_env: UNNISEND_OMNIROUTE_KEY
+  model: auto/claude-sonnet
+  models:
+    auto/claude-sonnet: {}
+    auto/claude-opus: {}
+    auto/claude-haiku: {}
+    auto/smart: {}
+    auto/cheap: {}
+    auto/best-vision: {}
 auxiliary:
   vision:
     provider: custom
@@ -36,15 +32,8 @@ auxiliary:
     base_url: https://omniroute.unnichat.com.br/v1
     model: auto/claude-haiku
     language: pt-BR
-
 agent:
   language: pt-BR
-
-# Memória individual local fica ligada (preferências e contexto da pessoa).
-# Memória compartilhada da empresa: plugin hindsight apontando para o porteiro de memória
-# (hindsight/config.json). A chave usada é a MESMA chave individual do OmniRoute
-# (HINDSIGHT_API_KEY no .env, gravada pelo instalador); a chave administrativa do Hindsight
-# fica só no servidor. O porteiro decide os bancos (área da pessoa + geral).
 memory:
   memory_enabled: true
   user_profile_enabled: true
@@ -58,6 +47,7 @@ onboarding:
     openclaw_residue_cleanup: true
 plugins:
   enabled:
-    - hindsight
-    - unnisend_atualiza
+  - hindsight
+  - unnisend_atualiza
+  - unnisend_agentes
   disabled: []

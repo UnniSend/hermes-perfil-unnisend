@@ -1,0 +1,7 @@
+name: unnisend_agentes
+version: 0.1.0
+description: "Time de agentes da UnniSend no mesmo perfil: Michael (orquestrador), Buchecha, Dwight, Angela, Holly, Phyllis, Jim e Ryan. Troca por /nome, por `unnisend <nome>` ou pelo nome no começo da mensagem; marca o agente em uso no OmniRoute."
+author: "UnniSend"
+provides_hooks:
+  - pre_llm_call
+requires_env: []
