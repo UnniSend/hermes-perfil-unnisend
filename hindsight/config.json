@@ -1,6 +1,6 @@
 {
   "mode": "local_external",
-  "api_url": "https://porteiro-production-2abf.up.railway.app",
+  "api_url": "https://memoria.unnichat.com.br",
   "bank_id": "auto",
   "recall_budget": "low",
   "memory_mode": "hybrid",
