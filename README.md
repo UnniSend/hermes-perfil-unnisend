@@ -32,7 +32,7 @@ Suas conversas, memória e chave ficam no seu computador e não são tocadas pel
 
 O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 4.6 com reservas automáticas). Também existem `unnisend/opus` (Opus 4.7) e `unnisend/haiku` (rápido e barato). Troque com `/model unnisend/opus` dentro da conversa ou `unnisend --model unnisend/opus`.
 
-Evite por enquanto os modelos Claude 5.5 (`claude-sonnet-5-5`, `claude-opus-5-5`, `auto/claude-sonnet`, `auto/claude-opus`): a versão atual do roteador ainda envia o parâmetro `temperature`, que esses modelos recusam, e a chamada falha com 400 "temperature is deprecated". Nas IDEs (Claude Code, Cursor) esse problema não acontece.
+A sua chave só libera os modelos que funcionam hoje: `unnisend/*`, `claude/claude-sonnet-4-6`, `claude/claude-opus-4-7`, `claude/claude-opus-4-8`, `claude/claude-opus-5`, `claude/claude-sonnet-5`, `claude/claude-haiku-4-5-20251001` e `auto/best-vision`. Os Claude 5.5 e os `auto/claude-*` ficaram de fora de propósito: a versão atual do roteador manda um parâmetro que os 5.5 recusam (400 "temperature is deprecated"), a rota `cc/` finge uma versão antiga do Claude Code (400 "version 2.1.280 or newer"), e os `auto/claude-*` estavam devolvendo Haiku. Pedir modelo fora da lista devolve "Model not allowed". A lista volta a crescer quando o roteador for atualizado.
 
 Alterações feitas direto no `config.yaml` do perfil voltam ao padrão na próxima atualização. Para persistir, use `--model` na linha de comando ou peça a mudança ao Israel.
 

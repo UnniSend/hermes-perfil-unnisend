@@ -13,11 +13,12 @@ custom_providers:
     unnisend/sonnet: {}
     unnisend/opus: {}
     unnisend/haiku: {}
-    auto/claude-sonnet: {}
-    auto/claude-opus: {}
-    auto/claude-haiku: {}
-    auto/smart: {}
-    auto/cheap: {}
+    claude/claude-sonnet-4-6: {}
+    claude/claude-opus-4-7: {}
+    claude/claude-opus-4-8: {}
+    claude/claude-opus-5: {}
+    claude/claude-sonnet-5: {}
+    claude/claude-haiku-4-5-20251001: {}
     auto/best-vision: {}
 auxiliary:
   vision:
