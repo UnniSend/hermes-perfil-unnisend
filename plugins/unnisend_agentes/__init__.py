@@ -183,6 +183,53 @@ def _comando(nome: str):
     return _h
 
 
+_QUEM_CACHE = {"ate": 0.0, "texto": ""}
+
+
+def _quem_sou() -> str:
+    """Pergunta ao porteiro de memória quem é a pessoa desta chave (nome e área, vindos do Notion).
+    Cache de 1 hora; falha vira string vazia (o agente então pergunta, em vez de inventar)."""
+    if _QUEM_CACHE["ate"] > time.time():
+        return _QUEM_CACHE["texto"]
+    texto = ""
+    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or os.environ.get("HINDSIGHT_API_KEY") or ""
+    if not chave:
+        try:
+            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
+                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
+                    chave = linha.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+        except OSError:
+            pass
+    if chave:
+        try:
+            import urllib.request
+            req = urllib.request.Request(
+                "https://memoria.unnichat.com.br/eu",
+                headers={"Authorization": "Bearer " + chave, "User-Agent": "hermes-unnisend/0.3"},
+            )
+            with urllib.request.urlopen(req, timeout=6) as r:
+                d = json.loads(r.read().decode("utf-8"))
+            if d.get("pessoa"):
+                area = d.get("area") or "?"
+                extras = ", ".join(d.get("extras") or [])
+                texto = (f"Quem está falando com você: {d['pessoa']}, área {area}"
+                         + (f" (também {extras})" if extras else "")
+                         + ". Dado vem do cadastro de membros do Notion via porteiro de memória; use o nome e a área "
+                           "para adaptar o tom e para decidir o que pode responder. Você NÃO é essa pessoa: você é o agente ativo.")
+        except Exception:
+            texto = ""
+    _QUEM_CACHE["ate"] = time.time() + (3600 if texto else 300)
+    _QUEM_CACHE["texto"] = texto
+    return texto
+
+
+def _comando_eu(raw: str) -> str:
+    _QUEM_CACHE["ate"] = 0.0
+    t = _quem_sou()
+    return t.split(". Dado vem")[0] if t else "Não consegui identificar você pelo porteiro (memoria.unnichat.com.br). Confira a chave no .env do perfil ou fale com o Israel."
+
+
 def _comando_agentes(raw: str) -> str:
     linhas = [f"Agente ativo: {_estado['ativo'].capitalize()}", "", "Time (digite /nome para trocar):"]
     desc = {
@@ -212,6 +259,10 @@ def register(ctx) -> None:
     bloco = _bloco_persona(inicial)
     if bloco:
         ctx.register_system_prompt_section("unnisend.agente", bloco[:4000], position="after_memory", max_chars=4000)
+    quem = _quem_sou()
+    if quem:
+        ctx.register_system_prompt_section("unnisend.membro", quem, position="after_memory", max_chars=600)
+    ctx.register_command("eu", _comando_eu, description="Mostra quem o Hermes acha que você é (nome e área)")
 
     ctx.register_hook("pre_llm_call", _pre_llm_call)
     for a in AGENTES:

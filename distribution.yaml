@@ -1,5 +1,5 @@
 name: unnisend
-version: 0.3.2
+version: 0.3.3
 description: 'Assistente de trabalho da UnniSend: Hermes no computador do membro,
   IA pelo OmniRoute central da empresa'
 hermes_requires: '>=0.21.0'

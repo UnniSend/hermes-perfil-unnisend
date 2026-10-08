@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Instalador do perfil Hermes da UnniSend (Mac e Linux). Um comando, o resto é automático:
+# Instalador do perfil Hermes da UnniSend (Mac e Linux, inclusive Ubuntu/Fedora/Arch). Um comando, o resto é automático:
 #   1. instala o Hermes se ainda não existir;
 #   2. instala (ou atualiza) o perfil "unnisend" a partir deste repositório;
 #   3. pede a sua chave pessoal do OmniRoute da empresa e guarda só no seu computador.
@@ -15,7 +15,7 @@ diga() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
 
 # 1) Hermes
 if ! command -v hermes >/dev/null 2>&1 && [ ! -x "$HOME/.local/bin/hermes" ]; then
-  diga "Instalando o Hermes (leva alguns minutos)..."
+  diga "Instalando o Hermes (baixa o código e as dependências; leva de 3 a 8 minutos e pode parecer parado no clone, é normal)..."
   curl -fsSL https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.sh | bash -s -- --non-interactive
 fi
 export PATH="$HOME/.local/bin:$PATH"
@@ -32,14 +32,23 @@ fi
 
 # 3) Chave pessoal (só se ainda não tiver)
 if ! grep -qs '^UNNISEND_OMNIROUTE_KEY=sk-' "$ENV_PERFIL" 2>/dev/null; then
-  diga "Cole a sua chave pessoal do OmniRoute da UnniSend (o Israel te enviou; começa com sk-)."
-  printf 'Chave: '
-  read -rs CHAVE </dev/tty
-  echo
-  case "$CHAVE" in
-    sk-*) ;;
-    *) echo "Isso não parece uma chave (precisa começar com sk-). Rode de novo quando tiver a chave."; exit 1 ;;
-  esac
+  # Variável de ambiente pula a pergunta (útil para quem roda por curl | bash ou em servidor):
+  #   UNNISEND_OMNIROUTE_KEY=sk-... bash instalar.sh
+  CHAVE="${UNNISEND_OMNIROUTE_KEY:-}"
+  TENTATIVAS=0
+  while ! case "$CHAVE" in sk-*) true;; *) false;; esac; do
+    if [ "$TENTATIVAS" -ge 3 ]; then
+      echo "Não recebi uma chave válida. Rode de novo com a chave na variável:  UNNISEND_OMNIROUTE_KEY=sk-... bash <(curl -fsSL https://raw.githubusercontent.com/$REPO/main/instalar.sh)"; exit 1
+    fi
+    if [ "$TENTATIVAS" -gt 0 ]; then echo "Isso não parece uma chave (precisa começar com sk- e vir sem espaços). Tente de novo."; fi
+    diga "Cole a sua chave pessoal do OmniRoute da UnniSend (o Israel te enviou por DM; começa com sk-) e dê Enter."
+    printf 'Chave: '
+    # curl | bash deixa o stdin ocupado pelo script; lê do terminal quando existe um de verdade
+    if (exec </dev/tty) 2>/dev/null; then read -rs CHAVE </dev/tty || CHAVE=""; else read -rs CHAVE || CHAVE=""; fi
+    echo
+    CHAVE="$(printf '%s' "$CHAVE" | tr -d '[:space:]')"
+    TENTATIVAS=$((TENTATIVAS+1))
+  done
   mkdir -p "$(dirname "$ENV_PERFIL")"
   touch "$ENV_PERFIL"; chmod 600 "$ENV_PERFIL"
   grep -v '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" > "$ENV_PERFIL.tmp" 2>/dev/null || true

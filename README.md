@@ -6,7 +6,7 @@ Ele define como o assistente trabalha, quais skills e agentes estão liberados e
 
 ## Instalar no seu computador (uma vez)
 
-Mac ou Linux, no Terminal:
+Mac ou Linux (Ubuntu, Fedora, Arch...), no Terminal:
 
     curl -fsSL https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.sh | bash
 
@@ -14,8 +14,9 @@ Windows, no PowerShell:
 
     irm https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.ps1 | iex
 
-O instalador instala o Hermes (se faltar), baixa este perfil e pede a sua chave pessoal, que o Israel
-entrega a cada pessoa. Depois, para usar, abra a pasta do projeto e rode:
+O instalador instala o Hermes (se faltar; leva de 3 a 8 minutos e pode parecer parado no download), baixa este perfil e pede a sua chave pessoal, que o Israel entrega a cada pessoa por DM. Se o campo da chave não aparecer (acontece em alguns terminais quando se roda por `curl | bash`), passe a chave na variável:
+
+    UNNISEND_OMNIROUTE_KEY=sk-... bash <(curl -fsSL https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.sh) Depois, para usar, abra a pasta do projeto e rode:
 
     unnisend chat
 
@@ -40,6 +41,10 @@ Alterações feitas direto no `config.yaml` do perfil voltam ao padrão na próx
 Além da memória individual (no seu computador), o Hermes lembra fatos compartilhados da sua área e da empresa. Isso passa pelo porteiro de memória da UnniSend (https://memoria.unnichat.com.br), que reconhece você pela sua chave pessoal do OmniRoute e descobre a sua área no Notion da UnniSend (cadastro de membros): você só vê a memória da sua área e a geral. Quem é de Gestão ou Liderança vê todas as áreas. A chave administrativa da memória fica no servidor; no seu computador existe apenas a sua chave.
 
 O instalador grava a sua chave também como `HINDSIGHT_API_KEY` no `.env` do perfil (o plugin de memória lê por esse nome). Se a memória da empresa parar de responder, confira com o Israel se a sua chave continua ativa.
+
+## Quem sou eu para o Hermes
+
+O Hermes descobre seu nome e sua área pela sua chave (via porteiro de memória e cadastro de membros do Notion) e usa isso para adaptar o que responde. Para conferir: `/eu` dentro da conversa. Se vier errado, fale com o Israel.
 
 ## Agentes do time
 
