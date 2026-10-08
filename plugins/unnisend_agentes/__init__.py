@@ -65,10 +65,56 @@ def _agente_inicial() -> str:
     return pedido if pedido in AGENTES else _agente_salvo()
 
 
-def _marcar_sessao(nome: str) -> None:
-    """Valor do cabeçalho x-omniroute-session-id: agente + carimbo. Sem nenhum dado pessoal."""
+def _marcar_sessao(nome: str, agent=None) -> None:
+    """Valor do cabeçalho x-omniroute-session-id: agente + carimbo. Sem nenhum dado pessoal.
+    O config.yaml não expande ${VAR} definido em tempo de execução, então o cabeçalho é gravado
+    direto no cliente HTTP do agente (lido a cada chamada); a variável fica só como registro."""
     os.environ["UNNISEND_SESSAO"] = f"unnisend-{nome}-{time.strftime('%Y%m%d-%H%M%S')}"
     os.environ["UNNISEND_AGENTE_ATIVO"] = nome
+    _gravar_cabecalho(agent)
+
+
+_CLIENTES = []  # clientes HTTP vivos (referência fraca não funciona para todos os tipos; lista curta)
+
+
+def _gravar_cabecalho(agent=None) -> None:
+    """Grava x-omniroute-session-id em todo cliente HTTP conhecido. O dict _custom_headers do SDK
+    é lido a cada chamada, então a troca de agente vale para a próxima requisição."""
+    valor = os.environ.get("UNNISEND_SESSAO") or ""
+    if not valor:
+        return
+    alvos = list(_CLIENTES)
+    if agent is not None:
+        alvos += [getattr(agent, a, None) for a in ("client", "_client", "async_client", "_async_client")]
+    for cli in alvos:
+        hdr = getattr(cli, "_custom_headers", None)
+        if isinstance(hdr, dict):
+            hdr["x-omniroute-session-id"] = valor
+
+
+def _envolver_criacao_de_cliente() -> None:
+    """Toda vez que o Hermes cria o cliente do modelo (início, troca de modelo, fallback), registra o
+    cliente e grava o cabeçalho nele."""
+    try:
+        from agent import agent_runtime_helpers as arh
+    except Exception:
+        return
+    original = getattr(arh, "create_openai_client", None)
+    if original is None or getattr(original, "_unnisend_envolvido", False):
+        return
+
+    def envolvido(agent, client_kwargs, *, reason, shared):
+        cli = original(agent, client_kwargs, reason=reason, shared=shared)
+        if cli is not None:
+            _CLIENTES.append(cli)
+            del _CLIENTES[:-4]
+            _gravar_cabecalho(agent)
+        return cli
+
+    envolvido._unnisend_envolvido = True
+    # AIAgent._create_openai_client resolve agent_runtime_helpers.create_openai_client por nome a cada
+    # chamada (agent.lazy_forward), então trocar o atributo do módulo basta.
+    arh.create_openai_client = envolvido
 
 
 _estado = {"ativo": PADRAO, "troca_pendente": None}
@@ -106,6 +152,8 @@ def _pre_llm_call(**kw):
     """Troca de agente pelo nome no começo da mensagem (vale só para a conversa) e injeção da alma
     quando o agente mudou depois que a sessão abriu (a seção fixa do prompt é congelada por sessão)."""
     msg = kw.get("user_message") or ""
+    agent = kw.get("agent")
+    _gravar_cabecalho(agent)  # garante o cabeçalho mesmo sem troca de agente nesta mensagem
     m = _RE_NOME.match(msg) if isinstance(msg, str) else None
     novo = None
     if m and m.group(1).lower() != _estado["ativo"]:
@@ -115,7 +163,7 @@ def _pre_llm_call(**kw):
         _estado["troca_pendente"] = None
     if novo and novo in AGENTES:
         _estado["ativo"] = novo
-        _marcar_sessao(novo)
+        _marcar_sessao(novo, agent)
         bloco = _bloco_persona(novo)
         if bloco:
             extra = ("\n\n" + LEMBRETE_MICHAEL) if novo == "michael" else ""
@@ -154,6 +202,7 @@ def _comando_agentes(raw: str) -> str:
 def register(ctx) -> None:
     inicial = _agente_inicial()
     _estado["ativo"] = inicial
+    _envolver_criacao_de_cliente()
     _marcar_sessao(inicial)
 
     # Alma do agente inicial entra como mensagem de sistema da sessão (HERMES_EPHEMERAL_SYSTEM_PROMPT),

@@ -4,8 +4,6 @@ model:
   base_url: https://omniroute.unnichat.com.br/v1
   default: auto/claude-sonnet
   key_env: UNNISEND_OMNIROUTE_KEY
-  default_headers:
-    x-omniroute-session-id: ${UNNISEND_SESSAO}
 custom_providers:
 - name: OmniRoute UnniSend
   base_url: https://omniroute.unnichat.com.br/v1
