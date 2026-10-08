@@ -27,6 +27,14 @@ O perfil se atualiza sozinho ao abrir. Se quiser forçar:
 
 Suas conversas, memória e chave ficam no seu computador e não são tocadas pela atualização.
 
+## Modelos
+
+O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 4.6 com reservas automáticas). Também existem `unnisend/opus` (Opus 4.7) e `unnisend/haiku` (rápido e barato). Troque com `/model unnisend/opus` dentro da conversa ou `unnisend --model unnisend/opus`.
+
+Evite por enquanto os modelos Claude 5.5 (`claude-sonnet-5-5`, `claude-opus-5-5`, `auto/claude-sonnet`, `auto/claude-opus`): a versão atual do roteador ainda envia o parâmetro `temperature`, que esses modelos recusam, e a chamada falha com 400 "temperature is deprecated". Nas IDEs (Claude Code, Cursor) esse problema não acontece.
+
+Alterações feitas direto no `config.yaml` do perfil voltam ao padrão na próxima atualização. Para persistir, use `--model` na linha de comando ou peça a mudança ao Israel.
+
 ## Memória da empresa
 
 Além da memória individual (no seu computador), o Hermes lembra fatos compartilhados da sua área e da empresa. Isso passa pelo porteiro de memória da UnniSend (https://memoria.unnichat.com.br), que reconhece você pela sua chave pessoal do OmniRoute e descobre a sua área no Notion da UnniSend (cadastro de membros): você só vê a memória da sua área e a geral. Quem é de Gestão ou Liderança vê todas as áreas. A chave administrativa da memória fica no servidor; no seu computador existe apenas a sua chave.

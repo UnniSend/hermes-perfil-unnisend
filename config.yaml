@@ -2,14 +2,17 @@ _config_version: 49
 model:
   provider: custom
   base_url: https://omniroute.unnichat.com.br/v1
-  default: auto/claude-sonnet
+  default: unnisend/sonnet
   key_env: UNNISEND_OMNIROUTE_KEY
 custom_providers:
 - name: OmniRoute UnniSend
   base_url: https://omniroute.unnichat.com.br/v1
   key_env: UNNISEND_OMNIROUTE_KEY
-  model: auto/claude-sonnet
+  model: unnisend/sonnet
   models:
+    unnisend/sonnet: {}
+    unnisend/opus: {}
+    unnisend/haiku: {}
     auto/claude-sonnet: {}
     auto/claude-opus: {}
     auto/claude-haiku: {}
@@ -24,11 +27,11 @@ auxiliary:
   compression:
     provider: custom
     base_url: https://omniroute.unnichat.com.br/v1
-    model: auto/claude-haiku
+    model: unnisend/haiku
   title_generation:
     provider: custom
     base_url: https://omniroute.unnichat.com.br/v1
-    model: auto/claude-haiku
+    model: unnisend/haiku
     language: pt-BR
 agent:
   language: pt-BR
