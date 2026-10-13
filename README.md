@@ -30,11 +30,15 @@ Suas conversas, memória e chave ficam no seu computador e não são tocadas pel
 
 ## Modelos
 
-O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 4.6 com reservas automáticas). Também existem `unnisend/opus` (Opus 4.7) e `unnisend/haiku` (rápido e barato). Troque com `/model unnisend/opus` dentro da conversa ou `unnisend --model unnisend/opus`.
+O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 5.5, com reserva automática no Sonnet 5 e 4.6). Também existem `unnisend/opus` (Opus 5.5, reserva Opus 5) e `unnisend/haiku` (Haiku 5.5, rápido e barato). Troque com `/model unnisend/opus` dentro da conversa ou `unnisend --model unnisend/opus`.
 
-A sua chave só libera os modelos que funcionam hoje: `unnisend/*`, `claude/claude-sonnet-4-6`, `claude/claude-opus-4-7`, `claude/claude-opus-4-8`, `claude/claude-opus-5`, `claude/claude-sonnet-5`, `claude/claude-haiku-4-5-20251001` e `auto/best-vision`. Os Claude 5.5 e os `auto/claude-*` ficaram de fora de propósito: a versão atual do roteador manda um parâmetro que os 5.5 recusam (400 "temperature is deprecated"), a rota `cc/` finge uma versão antiga do Claude Code (400 "version 2.1.280 or newer"), e os `auto/claude-*` estavam devolvendo Haiku. Pedir modelo fora da lista devolve "Model not allowed". A lista volta a crescer quando o roteador for atualizado.
+A sua chave libera `unnisend/*`, os Claude 5.5 (`claude/claude-sonnet-5-5`, `claude/claude-opus-5-5`, `claude/claude-haiku-5-5`), os 5.0 (`claude-sonnet-5`, `claude-opus-5`), o Sonnet 4.6 e o Haiku 4.5, além de `cc/claude-sonnet-5-5` e `cc/claude-opus-5-5` para quem usa a rota do Claude Code. Pedir modelo fora da lista devolve "Model not allowed". Quando a Anthropic lança modelo novo, um vigia da UnniSend confere duas vezes por semana e coloca o mais novo na frente dos `unnisend/*` sozinho; você não precisa mudar nada.
 
 Alterações feitas direto no `config.yaml` do perfil voltam ao padrão na próxima atualização. Para persistir, use `--model` na linha de comando ou peça a mudança ao Israel.
+
+## Transcrição local de áudio e vídeo (skill do José)
+
+O perfil traz a skill `transcricao-vibe`, feita pelo José Augusto: transcreve reunião gravada, áudio de WhatsApp ou vídeo na própria máquina, sem mandar nada para fora, e entrega o texto com minutagem (SRT). Para usar, é preciso instalar o programa `vibe` (https://github.com/thewh1teagle/vibe/releases/latest) e o `ffmpeg`, e baixar o modelo de voz (1,6 GB) uma vez; o próprio Hermes guia a instalação quando você pedir para transcrever algo. Com placa de vídeo, uma hora de reunião leva uns 5 minutos; sem placa, pode levar de 30 minutos a 1 hora.
 
 ## Memória da empresa
 

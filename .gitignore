@@ -54,8 +54,13 @@ cron/executions.db
 cron/ticker_*
 source-checks/
 telemetry/
-skills/
+skills/*
+!skills/transcricao-vibe/
 
 plugins/*
 !plugins/unnisend_atualiza/
 !plugins/unnisend_agentes/
+
+# skills: so a do Jose e versionada
+skills/*
+!skills/transcricao-vibe/
