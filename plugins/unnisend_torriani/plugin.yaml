@@ -1,0 +1,6 @@
+name: unnisend_torriani
+version: 0.1.0
+description: "Kit da consultoria Torriani dentro do Hermes da UnniSend: quando a sessão é aberta por `unnisend torriani send|unni`, fixa o negócio no prompt e registra /torriani (versão do kit e comandos do negócio)."
+author: "UnniSend"
+provides_hooks: []
+requires_env: []

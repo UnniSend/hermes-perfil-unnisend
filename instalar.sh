@@ -77,8 +77,17 @@ mkdir -p "$HOME/.local/bin"
 cat > "$HOME/.local/bin/unnisend" <<'ATALHO'
 #!/usr/bin/env bash
 # Abre o Hermes com o perfil da UnniSend. Antes, puxa a versão mais nova do perfil (sem mexer na sua chave nem nas suas conversas).
+#   unnisend                   chat na pasta atual
+#   unnisend torriani send     kit da consultoria Torriani, negócio SendFlow (ou: unni)
 export PATH="$HOME/.local/bin:$PATH"
 ( hermes profile update unnisend -y --force-config >/dev/null 2>&1 || true )
+PERFIL_DIR="${HERMES_HOME:-$HOME/.hermes}/profiles/unnisend"
+if [ "${1:-}" = "torriani" ]; then
+  shift
+  exec bash "$PERFIL_DIR/scripts/torriani.sh" "$@"
+fi
+# fora do kit do Torriani os comandos dele somem (a pasta é remontada a cada abertura do kit)
+rm -rf "$PERFIL_DIR/torriani-skills" 2>/dev/null || true
 exec hermes -p unnisend "${@:-chat}"
 ATALHO
 chmod +x "$HOME/.local/bin/unnisend"

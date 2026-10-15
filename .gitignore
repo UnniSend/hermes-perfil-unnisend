@@ -60,6 +60,7 @@ skills/*
 plugins/*
 !plugins/unnisend_atualiza/
 !plugins/unnisend_agentes/
+!plugins/unnisend_torriani/
 
 # skills: so a do Jose e versionada
 skills/*

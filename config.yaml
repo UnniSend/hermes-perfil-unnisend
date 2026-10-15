@@ -53,4 +53,9 @@ plugins:
   - hindsight
   - unnisend_atualiza
   - unnisend_agentes
+  - unnisend_torriani
   disabled: []
+skills:
+  # Comandos do kit do Torriani: pasta montada por scripts/torriani.sh (links para as skills do negócio escolhido).
+  external_dirs:
+  - torriani-skills

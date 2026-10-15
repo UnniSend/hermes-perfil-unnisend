@@ -50,6 +50,17 @@ O instalador grava a sua chave também como `HINDSIGHT_API_KEY` no `.env` do per
 
 O Hermes descobre seu nome e sua área pela sua chave (via porteiro de memória e cadastro de membros do Notion) e usa isso para adaptar o que responde. Para conferir: `/eu` dentro da conversa. Se vier errado, fale com o Israel.
 
+## Kit da consultoria Torriani (Marketing)
+
+Os assistentes de marketing que o Juliano Torriani entrega ficam em um repositório privado da UnniSend (`consultoria-torriani`). Quem é de Marketing Sendi ou Marketing Unni abre o kit assim:
+
+    unnisend torriani send      SendFlow
+    unnisend torriani unni      UnniChat
+
+O comando pede ao porteiro da empresa a chave de leitura do repositório (só sua área recebe; quem não é de marketing vê "sua área não usa"), baixa ou atualiza o kit em `~/UnniSend/consultoria-torriani` (só a parte útil, uns 140 MB: as entregas antigas e os vídeos ficam no GitHub) e abre o Hermes dentro da pasta `ContextOS`, com o negócio fixado. Os quinze assistentes do negócio viram comandos de barra (`/sendflow-copy`, `/sendflow-trafego`, `/sendflow-design`...; ou `unnichat-*`); `/torriani` mostra a lista e a versão do kit. A cada abertura o kit é atualizado sozinho com o que o Torriani publicou.
+
+O repositório é só leitura a partir do seu computador: as entregas ficam em `outputs/<negócio>/` na sua máquina e nada sobe para o GitHub daqui. Se um script do kit der erro, mande a mensagem para o Israel: é o Torriani quem corrige no repositório dele.
+
 ## Agentes do time
 
 Dentro do mesmo perfil há um time de agentes, cada um com uma função. Você escolhe de três jeitos:

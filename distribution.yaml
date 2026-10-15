@@ -1,5 +1,5 @@
 name: unnisend
-version: 0.3.5
+version: 0.3.6
 description: 'Assistente de trabalho da UnniSend: Hermes no computador do membro,
   IA pelo OmniRoute central da empresa'
 hermes_requires: '>=0.21.0'
@@ -20,6 +20,9 @@ distribution_owned:
   - plugins/unnisend_atualiza/plugin.yaml
   - plugins/unnisend_agentes/__init__.py
   - plugins/unnisend_agentes/plugin.yaml
+  - plugins/unnisend_torriani/__init__.py
+  - plugins/unnisend_torriani/plugin.yaml
+  - scripts/torriani.sh
   - agentes
   - skills/transcricao-vibe
 source: github.com/UnniSend/hermes-perfil-unnisend
