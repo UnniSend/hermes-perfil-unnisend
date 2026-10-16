@@ -5,8 +5,8 @@
 #   1. pede ao porteiro da empresa (memoria.unnichat.com.br) a chave de leitura do repositório, usando a SUA chave
 #      do OmniRoute; o porteiro só entrega para quem é de Marketing Sendi / Marketing Unni (ou gestão) e diz quais
 #      negócios você pode abrir;
-#   2. baixa (ou atualiza) o repositório em ~/UnniSend/consultoria-torriani, só a parte útil: sem a pasta
-#      ContextOS/outputs (entregas antigas, 1,1 GB) e sem arquivos grandes (LFS);
+#   2. baixa (ou atualiza) o repositório em ~/UnniSend/consultoria-torriani, SÓ TEXTO (.md, .yaml, .json e os
+#      scripts do kit): sem ContextOS/outputs, imagens, fontes, HTML, PDF, zip e sem LFS;
 #   3. deixa visíveis como comandos de barra só as skills do negócio escolhido (/sendflow-copy, /sendflow-trafego...);
 #   4. abre o Hermes na pasta ContextOS, que lê o AGENTS.md do Torriani e obedece ao contrato dele.
 # Nada é gravado no repositório do Torriani (a chave é só de leitura). Nenhuma chave aparece na tela.
@@ -66,14 +66,18 @@ chmod 600 "$CHAVE_SSH"
 export GIT_SSH_COMMAND="ssh -i $CHAVE_SSH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 export GIT_LFS_SKIP_SMUDGE=1
 REMOTO="git@github.com:UnniSend/consultoria-torriani.git"
+# Só texto chega ao computador (decisão do Israel, 16/10/2026): instruções, contexto e configuração em .md/.yaml/.json
+# e os scripts do kit. Ficam no GitHub: entregas antigas (outputs/), imagens, fontes, páginas HTML, PDFs, zips e snapshots.
+SO_TEXTO=('/*' '!/ContextOS/outputs/' '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
+  '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig')
 if [ ! -d "$REPO_DIR/.git" ]; then
-  diga "Baixando o kit do Torriani (só a parte útil, uns 140 MB; leva menos de 1 minuto)..."
+  diga "Baixando o kit do Torriani (só os textos, uns 50 MB; leva menos de 1 minuto)..."
   mkdir -p "$(dirname "$REPO_DIR")"
   git clone -q --filter=blob:none --no-checkout --depth 1 "$REMOTO" "$REPO_DIR"
-  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone '/*' '!/ContextOS/outputs/' && git checkout -q main )
+  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git checkout -q main )
 else
   diga "Atualizando o kit do Torriani..."
-  ( cd "$REPO_DIR" && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
+  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
 fi
 VERSAO="$(cd "$REPO_DIR" && git log -1 --format='%h de %ad' --date=format:'%d/%m %H:%M')"
 
