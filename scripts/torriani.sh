@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# unnisend torriani send | unni
+# torriani send | unni   (atalho de: unnisend torriani send | unni)
 # Abre o Hermes da UnniSend DENTRO do kit da consultoria Torriani (repositório UnniSend/consultoria-torriani),
 # fixado em um negócio (SendFlow ou UnniChat). O que acontece, nesta ordem:
 #   1. pede ao porteiro da empresa (memoria.unnichat.com.br) a chave de leitura do repositório, usando a SUA chave
@@ -16,7 +16,7 @@ NEG="${1:-}"
 case "$NEG" in
   send|sendflow|sendi) NEG=sendflow ;;
   unni|unnichat) NEG=unnichat ;;
-  *) echo "Uso: unnisend torriani send    (SendFlow)"; echo "     unnisend torriani unni    (UnniChat)"; exit 1 ;;
+  *) echo "Uso: torriani send    (SendFlow)"; echo "     torriani unni    (UnniChat)"; exit 1 ;;
 esac
 
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"

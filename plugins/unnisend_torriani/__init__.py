@@ -1,6 +1,6 @@
 """Kit da consultoria Torriani dentro do Hermes da UnniSend.
 
-Só faz algo quando a sessão foi aberta por `unnisend torriani send|unni` (scripts/torriani.sh), que
+Só faz algo quando a sessão foi aberta por `torriani send|unni` (scripts/torriani.sh), que
 exporta UNNISEND_TORRIANI_NEGOCIO (sendflow|unnichat) e UNNISEND_TORRIANI_REPO (pasta do clone).
 Nesse caso:
   1. põe no prompt de sistema o negócio fixado e a regra de não trocar de negócio (o kit do Torriani
@@ -45,7 +45,7 @@ def _comando_torriani(raw: str) -> str:
               f"Pasta: {REPO / 'ContextOS'}", "",
               f"Comandos deste negócio ({len(cmds)}):"]
     linhas += [f"  /{c}" for c in cmds]
-    linhas += ["", "Para o outro negócio, feche e abra com `unnisend torriani send` ou `unnisend torriani unni`.",
+    linhas += ["", "Para o outro negócio, feche e abra com `torriani send` ou `torriani unni`.",
                "Entregas vão para outputs/<negócio>/ dentro da pasta; o repositório é só leitura (nada sobe para o GitHub daqui)."]
     return "\n".join(linhas)
 

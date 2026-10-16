@@ -54,8 +54,10 @@ O Hermes descobre seu nome e sua área pela sua chave (via porteiro de memória 
 
 Os assistentes de marketing que o Juliano Torriani entrega ficam em um repositório privado da UnniSend (`consultoria-torriani`). Quem é de Marketing Sendi ou Marketing Unni abre o kit assim:
 
-    unnisend torriani send      SendFlow
-    unnisend torriani unni      UnniChat
+    torriani send      SendFlow
+    torriani unni      UnniChat
+
+(Quem instalou o perfil antes de 16/10 ainda não tem o atalho curto: use `unnisend torriani send` ou rode o instalador de novo.)
 
 O comando pede ao porteiro da empresa a chave de leitura do repositório (só sua área recebe; quem não é de marketing vê "sua área não usa"), baixa ou atualiza o kit em `~/UnniSend/consultoria-torriani` (só os textos: instruções em .md, configuração e os scripts do kit, uns 50 MB; entregas antigas, imagens, fontes e páginas HTML ficam no GitHub) e abre o Hermes dentro da pasta `ContextOS`, com o negócio fixado. Os quinze assistentes do negócio viram comandos de barra (`/sendflow-copy`, `/sendflow-trafego`, `/sendflow-design`...; ou `unnichat-*`); `/torriani` mostra a lista e a versão do kit. A cada abertura o kit é atualizado sozinho com o que o Torriani publicou.
 

@@ -78,7 +78,7 @@ cat > "$HOME/.local/bin/unnisend" <<'ATALHO'
 #!/usr/bin/env bash
 # Abre o Hermes com o perfil da UnniSend. Antes, puxa a versão mais nova do perfil (sem mexer na sua chave nem nas suas conversas).
 #   unnisend                   chat na pasta atual
-#   unnisend torriani send     kit da consultoria Torriani, negócio SendFlow (ou: unni)
+#   torriani send | unni       kit da consultoria Torriani (o mesmo que: unnisend torriani send)
 export PATH="$HOME/.local/bin:$PATH"
 ( hermes profile update unnisend -y --force-config >/dev/null 2>&1 || true )
 PERFIL_DIR="${HERMES_HOME:-$HOME/.hermes}/profiles/unnisend"
@@ -91,6 +91,12 @@ rm -rf "$PERFIL_DIR/torriani-skills" 2>/dev/null || true
 exec hermes -p unnisend "${@:-chat}"
 ATALHO
 chmod +x "$HOME/.local/bin/unnisend"
+# Atalho curto do kit da consultoria Torriani:  torriani send | torriani unni
+cat > "$HOME/.local/bin/torriani" <<'ATALHO_T'
+#!/usr/bin/env bash
+exec "$HOME/.local/bin/unnisend" torriani "$@"
+ATALHO_T
+chmod +x "$HOME/.local/bin/torriani"
 
 # 5) Prova rápida: a chave fala com o OmniRoute da empresa?
 diga "Testando a conexão com o OmniRoute da UnniSend..."

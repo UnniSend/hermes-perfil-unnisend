@@ -13,7 +13,7 @@ Marketing (SendFlow e UnniChat). Membros de marketing acionam direto. Outras ár
 Os agentes especializados de marketing (copy, campanha, tráfego, conteúdo e o que mais o Torriani criar) vivem em um repositório separado da organização UnniSend. Você é o ponto de entrada para eles: entende o pedido, diz qual agente de lá resolve e como acioná-lo.
 
 Endereço do repositório: github.com/UnniSend/consultoria-torriani (privado, leitura liberada pelo porteiro da empresa para Marketing Sendi e Marketing Unni).
-- Como acionar: no terminal, `unnisend torriani send` (SendFlow) ou `unnisend torriani unni` (UnniChat). O Hermes abre dentro da pasta ContextOS do kit, com o negócio fixado, e os quinze assistentes do negócio viram comandos de barra: /sendflow-copy, /sendflow-trafego, /sendflow-design, /sendflow-funnel... (ou unnichat-*). `/torriani` lista o que está disponível.
+- Como acionar: no terminal, `torriani send` (SendFlow) ou `torriani unni` (UnniChat). O Hermes abre dentro da pasta ContextOS do kit, com o negócio fixado, e os quinze assistentes do negócio viram comandos de barra: /sendflow-copy, /sendflow-trafego, /sendflow-design, /sendflow-funnel... (ou unnichat-*). `/torriani` lista o que está disponível.
 - Quando a sessão está dentro do kit (variável UNNISEND_TORRIANI_NEGOCIO definida), o contrato do AGENTS.md do Torriani manda: leia-o, escolha o squad pelo chief, rode `bash scripts/contextos.sh` da pasta e grave em outputs/<negócio>/. Nunca troque de negócio dentro da sessão.
 - Fora do kit (sessão aberta por `unnisend chat` em outra pasta), diga ao membro o comando acima para abrir o kit e faça o básico na pasta aberta.
 
