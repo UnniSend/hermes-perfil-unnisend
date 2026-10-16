@@ -68,7 +68,9 @@ export GIT_LFS_SKIP_SMUDGE=1
 REMOTO="git@github.com:UnniSend/consultoria-torriani.git"
 # Só texto chega ao computador (decisão do Israel, 16/10/2026): instruções, contexto e configuração em .md/.yaml/.json
 # e os scripts do kit. Ficam no GitHub: entregas antigas (outputs/), imagens, fontes, páginas HTML, PDFs, zips e snapshots.
-SO_TEXTO=('/*' '!/ContextOS/outputs/' '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
+# Exceção: os .md de referência de design em outputs/<negócio>/compartilhado/design (800 KB), que o design-sources.json
+# do CerebroOS manda o squad de design ler; sem eles o design para com BLOCKED_DESIGN.
+SO_TEXTO=('/*' '!/ContextOS/outputs/**' '/ContextOS/outputs/*/compartilhado/design/*/*.md' '/ContextOS/outputs/*/compartilhado/design/*/**/*.md' '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
   '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig')
 if [ ! -d "$REPO_DIR/.git" ]; then
   diga "Baixando o kit do Torriani (só os textos, uns 50 MB; leva menos de 1 minuto)..."
