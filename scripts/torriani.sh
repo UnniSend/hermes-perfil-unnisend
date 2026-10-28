@@ -66,43 +66,46 @@ chmod 600 "$CHAVE_SSH"
 export GIT_SSH_COMMAND="ssh -i $CHAVE_SSH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 export GIT_LFS_SKIP_SMUDGE=1
 REMOTO="git@github.com:UnniSend/consultoria-torriani.git"
-# O que chega ao computador (decisão do Israel, 16/10 e 28/10/2026):
-#   1. textos do kit: instruções, contexto e configuração em .md/.yaml/.json e os scripts;
-#   2. a marca inteira de cada negócio (negocios/*/CerebroOS/marca/**): logos, fontes, manual em PDF, design system
-#      e componentes, porque sem isso os assistentes de design não acham logo nem fonte (reteste de 28/10);
-#   3. as referências de design que as skills mandam ler, com as imagens: os .md de outputs/*/compartilhado/design,
-#      as peças e páginas piloto e o padrão de post de 22/10, e as capas do Instagram (artes/*-capa.*; os slides
-#      internos ficam no GitHub, só os 10 carrosséis citados em REFERENCIAS-INSTAGRAM.md descem).
-# Ficam no GitHub: entregas antigas (resto de outputs/), acervo Lovable, vídeos, zips, bundles e snapshots.
+# O que chega ao computador (Caminho C, decisão do Israel em 28/10/2026, substitui o "tudo da marca" da 0.4.0):
+#   1. todo texto do kit: .md, .txt, .json, .yaml, .csv, scripts; inclui os .md de referência de design em
+#      outputs/*/compartilhado/design e o texto/OCR das artes do Instagram (texto/artes/*.txt);
+#   2. de binário, SÓ logos (svg) e fontes (ttf/otf/woff/woff2) de negocios/*/CerebroOS/marca.
+# Ficam no GitHub: artes do Instagram, fotos, prints, manuais em PDF, HTML/JS dos componentes, acervos, vídeos, zips.
+# O assistente busca do GitHub só o arquivo que for usar, na hora: scripts/buscar-arquivo.sh (deste perfil).
 # Ordem importa: no sparse-checkout sem cone, a ÚLTIMA regra que casa com o arquivo vence.
 SO_TEXTO=('/*' '!/ContextOS/outputs/**' \
   '/ContextOS/outputs/*/compartilhado/design/*/*.md' '/ContextOS/outputs/*/compartilhado/design/*/**/*.md' \
+  '/ContextOS/outputs/*/compartilhado/design/*/**/*.txt' '/ContextOS/outputs/*/compartilhado/design/*/*.json' \
   '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
-  '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig' \
-  '/ContextOS/negocios/*/CerebroOS/marca/**' \
-  '/ContextOS/outputs/*/compartilhado/design/pecas-piloto-2026-10-22/**' \
-  '/ContextOS/outputs/*/compartilhado/design/paginas-piloto-2026-10-22/**' \
-  '/ContextOS/outputs/*/compartilhado/design/padrao-de-post-2026-10-22/**' \
-  '/ContextOS/outputs/*/compartilhado/design/instagram-2026-10-14/artes/*-capa.*' \
-  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DZazEu_FYHd-slide-*' \
-  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DaghxjJlX7D-slide-*' \
-  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DcwW3tvlWlT-slide-*' \
-  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DdC0QKrlT2s-slide-*' \
-  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DdFZDxCFXDN-slide-*' \
-  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DT3Z9dKjpGq-slide-*' \
-  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DTJTRlyDnUv-slide-*' \
-  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/Db0fuGpDp-b-slide-*' \
-  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DblPTvGjtNU-slide-*' \
-  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DcRle42CRQm-slide-*' \
-  '!**/*.mp4' '!**/*.mov' '!**/*.zip' '!**/*.tar.gz' '!**/*.bundle' '!**/*.psd' '!**/*.fig')
+  '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig' '!*.xlsx' '!*.sha256' \
+  '/ContextOS/negocios/*/CerebroOS/marca/**/*.svg' \
+  '/ContextOS/negocios/*/CerebroOS/marca/**/*.ttf' '/ContextOS/negocios/*/CerebroOS/marca/**/*.otf' \
+  '/ContextOS/negocios/*/CerebroOS/marca/**/*.woff' '/ContextOS/negocios/*/CerebroOS/marca/**/*.woff2')
 if [ ! -d "$REPO_DIR/.git" ]; then
-  diga "Baixando o kit do Torriani (textos, marca e referências de design, uns 650 MB; leva de 1 a 3 minutos)..."
+  diga "Baixando o kit do Torriani (textos, logos e fontes, uns 170 MB; leva menos de 1 minuto)..."
   mkdir -p "$(dirname "$REPO_DIR")"
   git clone -q --filter=blob:none --no-checkout --depth 1 "$REMOTO" "$REPO_DIR"
-  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git checkout -q main )
+  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git checkout -q main && touch .git/caminho-c )
+elif [ ! -f "$REPO_DIR/.git/caminho-c" ]; then
+  # Quem veio da 0.3.x/0.4.0: o histórico local guarda artes, PDFs e componentes que não vamos mais usar (até 400 MB)
+  # e o git não devolve esse espaço. Uma vez só: clone novo enxuto, e as suas entregas (outputs/, .env e tudo que não
+  # é do repositório) passam para ele. Se o clone novo falhar, nada é apagado e segue a atualização normal.
+  diga "Reorganizando o kit do Torriani (uma vez só: baixa de novo só o essencial, uns 170 MB, e mantém as suas entregas)..."
+  NOVO="$REPO_DIR.novo.$$"
+  if git clone -q --filter=blob:none --no-checkout --depth 1 "$REMOTO" "$NOVO" \
+     && ( cd "$NOVO" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git checkout -q main ) \
+     && ( cd "$REPO_DIR" && git ls-files --others -z | tar -c --null -T - -f - ) | ( cd "$NOVO" && tar -x -f - ); then
+    touch "$NOVO/.git/caminho-c"
+    mv "$REPO_DIR" "$REPO_DIR.antigo.$$" && mv "$NOVO" "$REPO_DIR" && rm -rf "$REPO_DIR.antigo.$$"
+  else
+    rm -rf "$NOVO"
+    echo "(não consegui reorganizar agora; seguindo com a atualização normal)"
+    ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" 2>/dev/null && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
+  fi
 else
-  diga "Atualizando o kit do Torriani (na primeira vez depois de 28/10 baixa a marca e as referências, uns 400 MB)..."
-  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
+  diga "Atualizando o kit do Torriani..."
+  # set + reset --hard reaplicam o padrão: o que a pessoa baixou com buscar-arquivo.sh sai do disco de novo (de propósito).
+  ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" 2>/dev/null && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
 fi
 VERSAO="$(cd "$REPO_DIR" && git log -1 --format='%h de %ad' --date=format:'%d/%m %H:%M')"
 # Conferência: logo e fonte precisam estar no disco; se não estiverem, o design não vai funcionar.
@@ -121,6 +124,9 @@ N_SKILLS="$(ls "$SKILLS_DIR" | wc -l | tr -d ' ')"
 export UNNISEND_TORRIANI_NEGOCIO="$NEG"
 export UNNISEND_TORRIANI_REPO="$REPO_DIR"
 export UNNISEND_AGENTE="${UNNISEND_AGENTE:-ryan}"
+# buscar-arquivo.sh (deste perfil) no PATH da sessão: o assistente baixa do GitHub só o arquivo que for usar
+chmod +x "$P/scripts/buscar-arquivo.sh" 2>/dev/null || true
+export PATH="$P/scripts:$PATH"
 diga "Kit do Torriani $VERSAO, negócio $NEG, $N_SKILLS comandos (digite /${NEG}-copy, /${NEG}-trafego... ou /torriani para a lista)."
 cd "$REPO_DIR/ContextOS"
 exec hermes -p "$PERFIL" chat

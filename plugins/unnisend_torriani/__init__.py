@@ -59,7 +59,11 @@ def register(ctx) -> None:
         f"Negócio explícito desta sessão: `{NEGOCIO}`. Não troque de negócio nem leia negocios/ do outro; "
         f"use só as skills {NEGOCIO}-* (comandos de barra) e os squads por elas indicados; grave em outputs/{NEGOCIO}/. "
         "Não instale nada no HOME, não publique, não gaste, não conecte serviço externo: este kit é preparado, não integrado. "
-        "Se um script do kit falhar, mostre o erro completo e diga que o Torriani precisa corrigir no repositório dele."
+        "Se um script do kit falhar, mostre o erro completo e diga que o Torriani precisa corrigir no repositório dele.\n"
+        "Arquivos: o clone traz só texto, logos (svg) e fontes (ttf/otf/woff). Artes do Instagram, fotos, prints, manuais em PDF "
+        "e acervos ficam no GitHub. Imagem ou arquivo de referência que não estiver no disco: rode "
+        "`buscar-arquivo.sh <caminho relativo a ContextOS/>` (está no PATH; `--listar <pasta>` mostra o que existe) ANTES de dizer "
+        "que não existe. Baixe só o que for usar, nunca a pasta artes/ inteira."
     )
-    ctx.register_system_prompt_section("unnisend.torriani", bloco, position="after_memory", max_chars=1200)
+    ctx.register_system_prompt_section("unnisend.torriani", bloco, position="after_memory", max_chars=1600)
     ctx.register_command("torriani", _comando_torriani, description="Kit do Torriani: negócio fixado, versão e comandos disponíveis")
