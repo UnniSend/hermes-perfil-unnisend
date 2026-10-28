@@ -66,22 +66,49 @@ chmod 600 "$CHAVE_SSH"
 export GIT_SSH_COMMAND="ssh -i $CHAVE_SSH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 export GIT_LFS_SKIP_SMUDGE=1
 REMOTO="git@github.com:UnniSend/consultoria-torriani.git"
-# Só texto chega ao computador (decisão do Israel, 16/10/2026): instruções, contexto e configuração em .md/.yaml/.json
-# e os scripts do kit. Ficam no GitHub: entregas antigas (outputs/), imagens, fontes, páginas HTML, PDFs, zips e snapshots.
-# Exceção: os .md de referência de design em outputs/<negócio>/compartilhado/design (800 KB), que o design-sources.json
-# do CerebroOS manda o squad de design ler; sem eles o design para com BLOCKED_DESIGN.
-SO_TEXTO=('/*' '!/ContextOS/outputs/**' '/ContextOS/outputs/*/compartilhado/design/*/*.md' '/ContextOS/outputs/*/compartilhado/design/*/**/*.md' '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
-  '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig')
+# O que chega ao computador (decisão do Israel, 16/10 e 28/10/2026):
+#   1. textos do kit: instruções, contexto e configuração em .md/.yaml/.json e os scripts;
+#   2. a marca inteira de cada negócio (negocios/*/CerebroOS/marca/**): logos, fontes, manual em PDF, design system
+#      e componentes, porque sem isso os assistentes de design não acham logo nem fonte (reteste de 28/10);
+#   3. as referências de design que as skills mandam ler, com as imagens: os .md de outputs/*/compartilhado/design,
+#      as peças e páginas piloto e o padrão de post de 22/10, e as capas do Instagram (artes/*-capa.*; os slides
+#      internos ficam no GitHub, só os 10 carrosséis citados em REFERENCIAS-INSTAGRAM.md descem).
+# Ficam no GitHub: entregas antigas (resto de outputs/), acervo Lovable, vídeos, zips, bundles e snapshots.
+# Ordem importa: no sparse-checkout sem cone, a ÚLTIMA regra que casa com o arquivo vence.
+SO_TEXTO=('/*' '!/ContextOS/outputs/**' \
+  '/ContextOS/outputs/*/compartilhado/design/*/*.md' '/ContextOS/outputs/*/compartilhado/design/*/**/*.md' \
+  '!*.png' '!*.jpg' '!*.jpeg' '!*.gif' '!*.webp' '!*.svg' '!*.ttf' '!*.otf' '!*.woff' '!*.woff2' \
+  '!*.html' '!*.pdf' '!*.zip' '!*.bin' '!*.mp4' '!*.mov' '!*.mp3' '!*.wav' '!*.pyc' '!*.psd' '!*.fig' \
+  '/ContextOS/negocios/*/CerebroOS/marca/**' \
+  '/ContextOS/outputs/*/compartilhado/design/pecas-piloto-2026-10-22/**' \
+  '/ContextOS/outputs/*/compartilhado/design/paginas-piloto-2026-10-22/**' \
+  '/ContextOS/outputs/*/compartilhado/design/padrao-de-post-2026-10-22/**' \
+  '/ContextOS/outputs/*/compartilhado/design/instagram-2026-10-14/artes/*-capa.*' \
+  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DZazEu_FYHd-slide-*' \
+  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DaghxjJlX7D-slide-*' \
+  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DcwW3tvlWlT-slide-*' \
+  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DdC0QKrlT2s-slide-*' \
+  '/ContextOS/outputs/sendflow/compartilhado/design/instagram-2026-10-14/artes/DdFZDxCFXDN-slide-*' \
+  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DT3Z9dKjpGq-slide-*' \
+  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DTJTRlyDnUv-slide-*' \
+  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/Db0fuGpDp-b-slide-*' \
+  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DblPTvGjtNU-slide-*' \
+  '/ContextOS/outputs/unnichat/compartilhado/design/instagram-2026-10-14/artes/DcRle42CRQm-slide-*' \
+  '!**/*.mp4' '!**/*.mov' '!**/*.zip' '!**/*.tar.gz' '!**/*.bundle' '!**/*.psd' '!**/*.fig')
 if [ ! -d "$REPO_DIR/.git" ]; then
-  diga "Baixando o kit do Torriani (só os textos, uns 50 MB; leva menos de 1 minuto)..."
+  diga "Baixando o kit do Torriani (textos, marca e referências de design, uns 650 MB; leva de 1 a 3 minutos)..."
   mkdir -p "$(dirname "$REPO_DIR")"
   git clone -q --filter=blob:none --no-checkout --depth 1 "$REMOTO" "$REPO_DIR"
   ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git checkout -q main )
 else
-  diga "Atualizando o kit do Torriani..."
+  diga "Atualizando o kit do Torriani (na primeira vez depois de 28/10 baixa a marca e as referências, uns 400 MB)..."
   ( cd "$REPO_DIR" && git sparse-checkout set --no-cone "${SO_TEXTO[@]}" && git fetch -q --depth 1 origin main && git reset -q --hard origin/main ) || echo "(não consegui atualizar agora; seguindo com a versão que já está no computador)"
 fi
 VERSAO="$(cd "$REPO_DIR" && git log -1 --format='%h de %ad' --date=format:'%d/%m %H:%M')"
+# Conferência: logo e fonte precisam estar no disco; se não estiverem, o design não vai funcionar.
+N_FONTES="$(find "$REPO_DIR"/ContextOS/negocios/"$NEG"/CerebroOS/marca -name '*.ttf' 2>/dev/null | wc -l | tr -d ' ')"
+N_LOGOS="$(find "$REPO_DIR"/ContextOS/negocios/"$NEG"/CerebroOS/marca -name '*.svg' 2>/dev/null | wc -l | tr -d ' ')"
+[ "$N_FONTES" -gt 0 ] && [ "$N_LOGOS" -gt 0 ] || echo "Atenção: a marca do $NEG não baixou inteira ($N_LOGOS logos, $N_FONTES fontes). Avise o Israel."
 
 # 3) Comandos de barra: só as skills do negócio escolhido (+ me-guia), por link simbólico; nada é copiado
 rm -rf "$SKILLS_DIR"; mkdir -p "$SKILLS_DIR"
