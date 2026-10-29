@@ -68,7 +68,8 @@ unset CHAVE_ATUAL
 # 3c) Plugin de memória (uma vez; o perfil já traz a configuração que aponta para o porteiro da empresa)
 if [ ! -d "$HERMES_HOME/profiles/$PERFIL/plugins/hindsight" ]; then
   diga "Instalando o plugin de memória da empresa..."
-  hermes -p "$PERFIL" plugins install hindsight >/dev/null 2>&1 || true
+  # --yes-deps: o plugin traz bibliotecas Python; sem esta resposta o Hermes recusa a instalação em modo não interativo.
+  hermes -p "$PERFIL" plugins install hindsight --yes-deps --enable >/dev/null 2>&1 || true
 fi
 hermes -p "$PERFIL" plugins enable hindsight >/dev/null 2>&1 || true
 

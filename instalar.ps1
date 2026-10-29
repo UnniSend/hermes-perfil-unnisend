@@ -4,21 +4,35 @@ $ErrorActionPreference = "Stop"
 # Rodado por "irm ... | iex": nunca usar exit aqui (fecha a janela do PowerShell antes de a pessoa ler a mensagem).
 $Repo = "github.com/UnniSend/hermes-perfil-unnisend"
 $Perfil = "unnisend"
-# No Windows o Hermes guarda tudo em %LOCALAPPDATA%\hermes (não em ~\.hermes). HERMES_HOME, se definido, manda.
-$HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "hermes" } else { Join-Path $HOME "AppData\Local\hermes" }
-$EnvPerfil = Join-Path $HermesHome "profiles\$Perfil\.env"
 
 function Diga($t) { Write-Host "`n$t" -ForegroundColor Cyan }
+# PATH da sessão = PATH do usuário e da máquina (o instalador do Hermes grava lá; uma janela aberta antes não enxerga).
+function Recarrega-Path {
+  $env:Path = "$HOME\.local\bin;" + [Environment]::GetEnvironmentVariable("Path","User") + ";" + [Environment]::GetEnvironmentVariable("Path","Machine")
+}
 
 # 1) Hermes
+Recarrega-Path
 if (-not (Get-Command hermes -ErrorAction SilentlyContinue)) {
-  Diga "Instalando o Hermes (leva alguns minutos)..."
+  Diga "Instalando o Hermes (leva de 5 a 15 minutos; em Windows ARM, mais; pode parecer parado, é normal)..."
   Invoke-Expression "& { $(Invoke-RestMethod https://raw.githubusercontent.com/NousResearch/hermes-agent/main/scripts/install.ps1) } -NonInteractive"
-  $env:Path = "$HOME\.local\bin;" + [Environment]::GetEnvironmentVariable("Path","User") + ";" + $env:Path
+  Recarrega-Path
 }
 if (-not (Get-Command hermes -ErrorAction SilentlyContinue)) {
   Write-Host "O Hermes não ficou disponível. Feche e abra o PowerShell e rode este comando de novo." -ForegroundColor Yellow; return
 }
+
+# Onde o Hermes guarda o perfil: pergunta ao próprio Hermes (no Windows é %LOCALAPPDATA%\hermes, não ~\.hermes).
+# Adivinhar a pasta foi o que gravou a chave onde o Hermes não lê (erro 401 no primeiro teste em Windows).
+$HermesHome = $null
+try {
+  $raiz = (hermes config path 2>$null | Select-Object -Last 1)
+  if ($raiz -and $raiz.Trim()) { $HermesHome = Split-Path -Parent $raiz.Trim() }
+} catch {}
+if (-not $HermesHome) {
+  $HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "hermes" } else { Join-Path $HOME "AppData\Local\hermes" }
+}
+$EnvPerfil = Join-Path $HermesHome "profiles\$Perfil\.env"
 
 # 2) Perfil da empresa
 if (Test-Path (Join-Path $HermesHome "profiles\$Perfil")) {
@@ -61,7 +75,8 @@ $chaveAtual = $null
 # 3c) Plugin de memoria (uma vez; o perfil ja traz a configuracao que aponta para o porteiro da empresa)
 if (-not (Test-Path (Join-Path $HermesHome "profiles\$Perfil\plugins\hindsight"))) {
   Diga "Instalando o plugin de memoria da empresa..."
-  try { hermes -p $Perfil plugins install hindsight | Out-Null } catch {}
+  # --yes-deps: o plugin traz bibliotecas Python; sem esta resposta o Hermes recusa a instalação sem perguntar (janela não interativa).
+  try { hermes -p $Perfil plugins install hindsight --yes-deps --enable | Out-Null } catch {}
 }
 try { hermes -p $Perfil plugins enable hindsight | Out-Null } catch {}
 
@@ -76,6 +91,9 @@ goto :eof
 :torriani
 call "%~dp0torriani.cmd" %1 %2
 '@ | Set-Content -Path (Join-Path $bin "unnisend.cmd") -Encoding ascii
+# O "profile install --alias" do Hermes cria unnisend.bat (só "hermes -p unnisend"). No Windows .bat vem antes de .cmd,
+# então ele escondia o nosso atalho: sem atualização do perfil e sem "unnisend torriani". Fica só o nosso.
+Remove-Item (Join-Path $bin "unnisend.bat") -Force -ErrorAction SilentlyContinue
 # torriani send | unni: o kit roda no Git Bash (o mesmo que o Hermes usa para o terminal no Windows).
 @'
 @echo off
@@ -94,17 +112,24 @@ if not defined HH set "HH=%LOCALAPPDATA%\hermes"
 $userPath = [Environment]::GetEnvironmentVariable("Path","User")
 if ($userPath -notlike "*$bin*") { [Environment]::SetEnvironmentVariable("Path", "$bin;$userPath", "User") }
 
-# 5) Prova rápida
-Diga "Testando a conexão com o OmniRoute da UnniSend..."
-$k = (Get-Content $EnvPerfil | Where-Object { $_ -match '^UNNISEND_OMNIROUTE_KEY=' }) -replace '^UNNISEND_OMNIROUTE_KEY=',''
-try {
-  $r = Invoke-WebRequest -Uri "https://omniroute.unnichat.com.br/v1/models" -Headers @{ Authorization = "Bearer $k" } -UseBasicParsing -TimeoutSec 20
-  $k = $null
-  if ($r.StatusCode -eq 200) { Diga "Tudo certo. Feche e abra o PowerShell de novo. Kit do Torriani: torriani send (SendFlow) ou torriani unni (UnniChat). Assistente da empresa na pasta atual: unnisend" }
-} catch {
-  $k = $null
+# 5) Prova de verdade: o PRÓPRIO Hermes, com o perfil unnisend, conversa pelo OmniRoute.
+# (Testar a chave fora do Hermes passava mesmo com a chave gravada onde o Hermes não lê.)
+Diga "Testando: o Hermes vai mandar uma mensagem curta pelo OmniRoute da UnniSend (na primeira vez pode levar 1 ou 2 minutos)..."
+Recarrega-Path
+$saida = ""
+$anterior = $ErrorActionPreference; $ErrorActionPreference = "Continue"
+try { $saida = (hermes -p $Perfil chat -Q --oneshot --max-turns 1 -q "Responda apenas a palavra: funcionando" 2>&1 | Out-String) } catch { $saida = "$_" }
+$codigo = $LASTEXITCODE
+$ErrorActionPreference = $anterior
+if ($codigo -eq 0 -and $saida -match 'funcionando') {
+  Diga "Tudo certo: o Hermes respondeu pelo OmniRoute com a sua chave. Feche e abra o PowerShell. Assistente da empresa na pasta atual: unnisend. Kit do Torriani: torriani send (SendFlow) ou torriani unni (UnniChat)."
+} elseif ($saida -match '401|Invalid API key|AUTH_00') {
   # Tira a chave recusada do perfil: senão a próxima instalação acha que já tem chave e não pergunta de novo.
   $linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' }
   Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
-  Write-Host "A chave não foi aceita. Confira com o Israel se a chave está certa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
+  Write-Host "A chave não foi aceita pelo OmniRoute. Confira com o Israel se a chave está certa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
+} else {
+  Write-Host "O Hermes foi instalado, mas o teste final não respondeu. Mande ao Israel o texto abaixo (não tem a sua chave):" -ForegroundColor Yellow
+  Write-Host (($saida -replace 'sk-[A-Za-z0-9_\-]+', 'sk-***').Trim()) -ForegroundColor DarkGray
+  return
 }
