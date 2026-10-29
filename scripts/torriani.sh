@@ -34,7 +34,7 @@ CHAVE_SSH="$P/chaves/torriani_ed25519"
 SKILLS_DIR="$P/torriani-skills"
 
 diga() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
-case " $* " in *" --desktop "*) diga "Aviso: a opção --desktop ainda não existe; o kit abre aqui no terminal (é o caminho certo hoje). O aplicativo Hermes Desktop fica para a próxima rodada." ;; esac
+DESKTOP=0; case " $* " in *" --desktop "*) DESKTOP=1 ;; esac
 case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) WINDOWS=1 ;; *) WINDOWS=0 ;; esac
 PY=python3; command -v python3 >/dev/null 2>&1 || PY=python   # no Windows o Python do sistema costuma se chamar python
 for b in git curl "$PY"; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
@@ -162,5 +162,13 @@ fi
 unset IMG_KEY
 diga "Kit do Torriani $VERSAO, negócio $NEG, $N_SKILLS comandos (digite /${NEG}-copy, /${NEG}-trafego... ou /torriani para a lista); $IMAGEM."
 cd "$REPO_DIR/ContextOS"
+if [ "$DESKTOP" = 1 ]; then
+  # Abre o aplicativo Hermes Desktop no perfil da empresa, dentro da pasta do kit, com o negócio e a imagem
+  # já no ambiente. Se o aplicativo ainda não foi montado neste computador, o Hermes monta na primeira vez
+  # (baixa o Electron e compila: 10 minutos ou mais, só na primeira vez).
+  diga "Abrindo o Hermes Desktop com o kit do Torriani ($NEG). Se for a primeira vez, o Hermes monta o aplicativo agora: pode levar 10 minutos ou mais. Não feche esta janela."
+  hermes -p "$PERFIL" desktop --cwd "$REPO_DIR/ContextOS" || { echo; echo "O aplicativo não abriu. Use o terminal: torriani $1 (sem --desktop)."; exit 1; }
+  exit 0
+fi
 if [ "$WINDOWS" = 1 ]; then hermes -p "$PERFIL" chat; exit $?; fi
 exec hermes -p "$PERFIL" chat
