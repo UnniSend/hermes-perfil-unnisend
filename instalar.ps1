@@ -1,6 +1,7 @@
 # Instalador do perfil Hermes da UnniSend para Windows (PowerShell). Um comando, o resto é automático.
 # Nenhuma chave entra neste script nem no repositório.
 $ErrorActionPreference = "Stop"
+# Rodado por "irm ... | iex": nunca usar exit aqui (fecha a janela do PowerShell antes de a pessoa ler a mensagem).
 $Repo = "github.com/UnniSend/hermes-perfil-unnisend"
 $Perfil = "unnisend"
 # No Windows o Hermes guarda tudo em %LOCALAPPDATA%\hermes (não em ~\.hermes). HERMES_HOME, se definido, manda.
@@ -16,7 +17,7 @@ if (-not (Get-Command hermes -ErrorAction SilentlyContinue)) {
   $env:Path = "$HOME\.local\bin;" + [Environment]::GetEnvironmentVariable("Path","User") + ";" + $env:Path
 }
 if (-not (Get-Command hermes -ErrorAction SilentlyContinue)) {
-  Write-Host "O Hermes não ficou disponível. Feche e abra o PowerShell e rode este comando de novo."; exit 1
+  Write-Host "O Hermes não ficou disponível. Feche e abra o PowerShell e rode este comando de novo." -ForegroundColor Yellow; return
 }
 
 # 2) Perfil da empresa
@@ -30,7 +31,8 @@ if (Test-Path (Join-Path $HermesHome "profiles\$Perfil")) {
 
 # 3) Chave pessoal
 $temChave = (Test-Path $EnvPerfil) -and (Select-String -Path $EnvPerfil -Pattern '^UNNISEND_OMNIROUTE_KEY=sk-' -Quiet)
-if (-not $temChave) {
+# Chave na linha do comando sempre vale (substitui uma chave antiga ou colada errado).
+if (-not $temChave -or $env:UNNISEND_OMNIROUTE_KEY) {
   if ($env:UNNISEND_OMNIROUTE_KEY) {
     $chave = $env:UNNISEND_OMNIROUTE_KEY.Trim()
   } else {
@@ -38,7 +40,8 @@ if (-not $temChave) {
     $segura = Read-Host -Prompt "Chave" -AsSecureString
     $chave = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura))
   }
-  if (-not $chave.StartsWith("sk-")) { Write-Host "Isso não parece uma chave (precisa começar com sk-)."; exit 1 }
+  $chave = "$chave".Trim()
+  if (-not $chave.StartsWith("sk-")) { Write-Host "Isso não parece uma chave (precisa começar com sk-). Rode este comando de novo e cole a chave inteira." -ForegroundColor Yellow; return }
   New-Item -ItemType Directory -Force -Path (Split-Path $EnvPerfil) | Out-Null
   $linhas = @()
   if (Test-Path $EnvPerfil) { $linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^UNNISEND_OMNIROUTE_KEY=' } }
@@ -100,5 +103,8 @@ try {
   if ($r.StatusCode -eq 200) { Diga "Tudo certo. Feche e abra o PowerShell de novo. Kit do Torriani: torriani send (SendFlow) ou torriani unni (UnniChat). Assistente da empresa na pasta atual: unnisend" }
 } catch {
   $k = $null
-  Write-Host "A chave não foi aceita. Confira com o Israel se a chave está ativa e rode este comando de novo."; exit 1
+  # Tira a chave recusada do perfil: senão a próxima instalação acha que já tem chave e não pergunta de novo.
+  $linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' }
+  Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
+  Write-Host "A chave não foi aceita. Confira com o Israel se a chave está certa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
 }

@@ -36,8 +36,37 @@ SKILLS_DIR="$P/torriani-skills"
 diga() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
 DESKTOP=0; case " $* " in *" --desktop "*) DESKTOP=1 ;; esac
 case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) WINDOWS=1 ;; *) WINDOWS=0 ;; esac
-PY=python3; command -v python3 >/dev/null 2>&1 || PY=python   # no Windows o Python do sistema costuma se chamar python
-for b in git curl "$PY"; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
+# Python: no Windows o "python" do sistema costuma ser só o atalho da Microsoft Store, que existe no PATH mas não roda
+# nada ("Python não foi encontrado"). Por isso usamos o Python que o próprio Hermes instalou (já vem com yaml e requests,
+# que os scripts do kit usam) e o colocamos como python3/python na sessão. No Mac/Linux, vale o python3 do sistema se rodar.
+roda_py() { [ -n "$1" ] && "$1" -c 'import json,base64,sys' >/dev/null 2>&1; }
+py_do_hermes() {
+  local f env c
+  for f in $(ls -t "$HERMES_HOME"/installs/*/facts.json 2>/dev/null); do
+    env="$(sed -n 's/.*"environment": *"\([^"]*\)".*/\1/p' "$f" | head -1 | sed 's/\\\\/\\/g')"
+    [ -n "$env" ] || continue
+    command -v cygpath >/dev/null 2>&1 && env="$(cygpath -u "$env")"
+    for c in "$env/Scripts/python.exe" "$env/bin/python3"; do roda_py "$c" && { printf '%s' "$c"; return 0; }; done
+  done
+  for c in "$HERMES_HOME"/installs/*/environments/*/venv/Scripts/python.exe "$HERMES_HOME"/installs/*/environments/*/venv/bin/python3 \
+           "$HERMES_HOME"/hermes-agent/venv/Scripts/python.exe "$HERMES_HOME"/hermes-agent/.venv/Scripts/python.exe \
+           "$HERMES_HOME"/hermes-agent/venv/bin/python3 "$HERMES_HOME"/hermes-agent/.venv/bin/python3; do
+    roda_py "$c" && { printf '%s' "$c"; return 0; }
+  done
+  return 1
+}
+PY=""
+if [ "$WINDOWS" = 1 ]; then PY="$(py_do_hermes || true)"; fi
+if [ -z "$PY" ]; then for c in python3 python; do roda_py "$c" && { PY="$c"; break; }; done; fi
+[ -n "$PY" ] || PY="$(py_do_hermes || true)"
+[ -n "$PY" ] || { echo "Não achei um Python que funcione neste computador (nem o que vem com o Hermes). Fale com o Israel."; exit 1; }
+case "$PY" in python3|python) ;; *)
+  # python3/python da sessão (e dos scripts do kit) = o do Hermes, na frente do atalho da Microsoft Store
+  PYBIN="$P/py-bin"; mkdir -p "$PYBIN"
+  for n in python3 python; do printf '#!/usr/bin/env bash\nexec "%s" "$@"\n' "$PY" > "$PYBIN/$n"; chmod +x "$PYBIN/$n"; done
+  export PATH="$PYBIN:$PATH" ;;
+esac
+for b in git curl; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
 command -v hermes >/dev/null 2>&1 || { echo "O comando hermes não está no PATH deste terminal. Feche e abra o terminal de novo."; exit 1; }
 
 CHAVE="$(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" 2>/dev/null | cut -d= -f2- || true)"
@@ -56,6 +85,7 @@ print("OK "+",".join(d.get("negocios",[]))+" "+d["segredo_base64"])
 ')"
 case "$PARSE" in
   OK*) ;;
+  *"chave inválida"*) echo "A sua chave não foi aceita (pode ter sido trocada ou colada pela metade)."; echo "Rode de novo o comando de instalação e cole a chave que o Israel te mandou."; exit 1 ;;
   *) echo "${PARSE#ERRO }"; echo "(o porteiro só libera o kit para Marketing Sendi e Marketing Unni; se você é de uma dessas áreas, fale com o Israel)"; exit 1 ;;
 esac
 NEGOCIOS="$(printf '%s' "$PARSE" | cut -d' ' -f2)"
