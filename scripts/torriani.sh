@@ -34,6 +34,7 @@ CHAVE_SSH="$P/chaves/torriani_ed25519"
 SKILLS_DIR="$P/torriani-skills"
 
 diga() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
+case " $* " in *" --desktop "*) diga "Aviso: a opção --desktop ainda não existe; o kit abre aqui no terminal (é o caminho certo hoje). O aplicativo Hermes Desktop fica para a próxima rodada." ;; esac
 case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) WINDOWS=1 ;; *) WINDOWS=0 ;; esac
 PY=python3; command -v python3 >/dev/null 2>&1 || PY=python   # no Windows o Python do sistema costuma se chamar python
 for b in git curl "$PY"; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
