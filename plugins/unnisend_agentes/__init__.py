@@ -230,6 +230,91 @@ def _comando_eu(raw: str) -> str:
     return t.split(". Dado vem")[0] if t else "Não consegui identificar você pelo porteiro (memoria.unnichat.com.br). Confira a chave no .env do perfil ou fale com o Israel."
 
 
+def _ler_chave() -> str:
+    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or ""
+    if not chave:
+        try:
+            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
+                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
+                    return linha.split("=", 1)[1].strip().strip('"').strip("'")
+        except OSError:
+            pass
+    return chave
+
+
+def _faltam(iso: str | None) -> str:
+    """'2026-10-30T03:00:00Z' -> 'renova em 6h 34min (30/10 às 00:00)', no horário de Brasília."""
+    if not iso:
+        return ""
+    try:
+        from datetime import datetime, timedelta, timezone
+        alvo = datetime.fromisoformat(iso.replace("Z", "+00:00"))
+        seg = int((alvo - datetime.now(timezone.utc)).total_seconds())
+        if seg <= 0:
+            return "renova agora"
+        d, h, m = seg // 86400, seg % 86400 // 3600, seg % 3600 // 60
+        tempo = (f"{d}d " if d else "") + (f"{h}h " if h or d else "") + f"{m}min"
+        local = alvo.astimezone(timezone(timedelta(hours=-3)))
+        return f"renova em {tempo} ({local:%d/%m às %H:%M})"
+    except Exception:
+        return ""
+
+
+def _comando_cota(raw: str) -> str:
+    """Quanto falta do SEU limite (dia e semana) e da conta da empresa. Pergunta direto ao OmniRoute
+    (/api/usage/om-usage, o mesmo dado do @@om-usage): não passa pelo modelo e não gasta cota."""
+    chave = _ler_chave()
+    if not chave:
+        return "Não achei a sua chave do OmniRoute no perfil. Fale com o Israel."
+    import urllib.error
+    import urllib.request
+    try:
+        req = urllib.request.Request(
+            "https://omniroute.unnichat.com.br/api/usage/om-usage?format=json",
+            headers={"Authorization": "Bearer " + chave, "User-Agent": "hermes-unnisend/0.4"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as r:
+            d = json.loads(r.read().decode("utf-8"))
+    except urllib.error.HTTPError as e:
+        if e.code == 401:
+            return "O OmniRoute recusou a sua chave. Fale com o Israel."
+        if e.code == 403:
+            return "A consulta de cota não está liberada na sua chave. Peça ao Israel para ligar."
+        return f"O OmniRoute não respondeu a consulta de cota (erro {e.code}). Tente de novo em instantes."
+    except Exception:
+        return "Não consegui falar com o OmniRoute agora. Confira a internet e tente de novo."
+    if not d.get("allowed", True):
+        return "A consulta de cota não está liberada na sua chave. Peça ao Israel para ligar."
+
+    linhas = ["Seu limite pessoal"]
+    p = d.get("personal") or {}
+    if p.get("enabled"):
+        for nome, lim, gasto, reset, estourou in (
+            ("Hoje", "dailyLimitUsd", "dailySpentUsd", "dailyResetAtIso", "dailyExceeded"),
+            ("Semana", "weeklyLimitUsd", "weeklySpentUsd", "weeklyResetAtIso", "weeklyExceeded"),
+        ):
+            total = p.get(lim) or 0
+            if not total:
+                continue
+            resta = max(0, round(100 - 100 * (p.get(gasto) or 0) / total))
+            aviso = "  LIMITE ATINGIDO" if p.get(estourou) else ""
+            linhas.append(f"  {nome}: restam {resta}%, {_faltam(p.get(reset))}{aviso}")
+    else:
+        linhas.append("  Sua chave não tem limite em dólar.")
+
+    prov = d.get("provider") or {}
+    rotulos = {"session (5h)": "Janela de 5 horas", "weekly (7d)": "Semana"}
+    janelas = [(rotulos[k], v) for k, v in (prov.get("quotas") or {}).items() if k in rotulos]
+    if janelas:
+        linhas += ["", "Conta Claude da empresa que você usa (compartilhada com o time)"]
+        for nome, q in janelas:
+            resta = q.get("remainingPercentage", q.get("remaining"))
+            linhas.append(f"  {nome}: restam {resta}%, {_faltam(q.get('resetAt'))}")
+    linhas += ["", "Quando o seu limite acaba, a IA para até renovar. Se a conta da empresa acabar, o OmniRoute "
+               "passa sozinho para a próxima conta."]
+    return "\n".join(linhas)
+
+
 def _comando_agentes(raw: str) -> str:
     linhas = [f"Agente ativo: {_estado['ativo'].capitalize()}", "", "Time (digite /nome para trocar):"]
     desc = {
@@ -263,6 +348,7 @@ def register(ctx) -> None:
     if quem:
         ctx.register_system_prompt_section("unnisend.membro", quem, position="after_memory", max_chars=600)
     ctx.register_command("eu", _comando_eu, description="Mostra quem o Hermes acha que você é (nome e área)")
+    ctx.register_command("cota", _comando_cota, description="Quanto falta do seu limite de IA (hoje e semana) e da conta da empresa")
 
     ctx.register_hook("pre_llm_call", _pre_llm_call)
     for a in AGENTES:

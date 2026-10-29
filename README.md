@@ -36,6 +36,10 @@ O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 5.5, com reserva automá
 
 A sua chave libera `unnisend/*`, os Claude 5.5 (`claude/claude-sonnet-5-5`, `claude/claude-opus-5-5`, `claude/claude-haiku-5-5`), os 5.0 (`claude-sonnet-5`, `claude-opus-5`), o Sonnet 4.6 e o Haiku 4.5, além de `cc/claude-sonnet-5-5` e `cc/claude-opus-5-5` para quem usa a rota do Claude Code. Pedir modelo fora da lista devolve "Model not allowed". Quando a Anthropic lança modelo novo, um vigia da UnniSend confere duas vezes por semana e coloca o mais novo na frente dos `unnisend/*` sozinho; você não precisa mudar nada.
 
+### Quanto falta do seu limite
+
+Digite `/cota` dentro da conversa. Mostra quanto resta do seu limite de hoje e da semana, quando cada um renova, e quanto resta da conta Claude da empresa que você usa. Não gasta cota. Em outros programas ligados ao OmniRoute (Claude Code, Cursor), mande a mensagem `@@om-usage` no chat: é o mesmo dado, em inglês.
+
 ### Modelo por tarefa: copy e design
 
 Para escrever copy ou fazer design, troque o modelo da conversa com um atalho:
