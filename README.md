@@ -36,6 +36,17 @@ O padrão do perfil é `unnisend/sonnet` (Claude Sonnet 5.5, com reserva automá
 
 A sua chave libera `unnisend/*`, os Claude 5.5 (`claude/claude-sonnet-5-5`, `claude/claude-opus-5-5`, `claude/claude-haiku-5-5`), os 5.0 (`claude-sonnet-5`, `claude-opus-5`), o Sonnet 4.6 e o Haiku 4.5, além de `cc/claude-sonnet-5-5` e `cc/claude-opus-5-5` para quem usa a rota do Claude Code. Pedir modelo fora da lista devolve "Model not allowed". Quando a Anthropic lança modelo novo, um vigia da UnniSend confere duas vezes por semana e coloca o mais novo na frente dos `unnisend/*` sozinho; você não precisa mudar nada.
 
+### Modelo por tarefa: copy e design
+
+Para escrever copy ou fazer design, troque o modelo da conversa com um atalho:
+
+    /copy-eco          copy no dia a dia (Sonnet 5.5, custo-benefício)
+    /copy-melhor       copy final, peça importante (Opus 5.5)
+    /designer-eco      design no dia a dia (Sonnet 5.5, custo-benefício)
+    /designer-melhor   design final (Opus 5.5)
+
+Use o "eco" no dia a dia e o "melhor" para a versão final: o "melhor" gasta a cota da empresa mais rápido. A troca vale só para a conversa aberta. Se o modelo principal estiver fora do ar ou sem cota, o OmniRoute passa sozinho para o seguinte da fila (por exemplo Fable 5.1 ou Opus 5 no copy). A ordem foi escolhida pelos rankings públicos de escrita criativa e de design de site de outubro de 2026. `/copy` sozinho continua sendo o comando do Hermes que copia a última resposta.
+
 Alterações feitas direto no `config.yaml` do perfil voltam ao padrão na próxima atualização. Para persistir, use `--model` na linha de comando ou peça a mudança ao Israel.
 
 ## Transcrição local de áudio e vídeo (skill do José)

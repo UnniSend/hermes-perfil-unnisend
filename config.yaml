@@ -20,6 +20,10 @@ custom_providers:
     claude/claude-opus-5: {}
     claude/claude-sonnet-4-6: {}
     claude/claude-haiku-4-5-20251001: {}
+    copy/melhor: {}
+    copy/economico: {}
+    designer/melhor: {}
+    designer/economico: {}
     auto/best-vision: {}
 auxiliary:
   vision:
@@ -71,3 +75,20 @@ terminal:
     - ~/.profile
     - ~/.bash_profile
     - ~/.bashrc
+quick_commands:
+  copy-melhor:
+    type: alias
+    target: /model copy/melhor
+    description: 'Copy: o melhor modelo (Opus 5.5)'
+  copy-eco:
+    type: alias
+    target: /model copy/economico
+    description: 'Copy: custo-benefício (Sonnet 5.5)'
+  designer-melhor:
+    type: alias
+    target: /model designer/melhor
+    description: 'Design: o melhor modelo (Opus 5.5)'
+  designer-eco:
+    type: alias
+    target: /model designer/economico
+    description: 'Design: custo-benefício (Sonnet 5.5)'
