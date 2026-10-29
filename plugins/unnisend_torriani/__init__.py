@@ -64,6 +64,10 @@ def register(ctx) -> None:
         "e acervos ficam no GitHub. Imagem ou arquivo de referência que não estiver no disco: rode "
         "`buscar-arquivo.sh <caminho relativo a ContextOS/>` (está no PATH; `--listar <pasta>` mostra o que existe) ANTES de dizer "
         "que não existe. Baixe só o que for usar, nunca a pasta artes/ inteira."
+        + ("\nImagem: OPENROUTER_API_KEY está disponível nos comandos de terminal desta sessão (confira com `test -n \"$OPENROUTER_API_KEY\" && echo ok`); "
+           "é a chave da empresa, com limite mensal, só para google/gemini-2.5-flash-image. Nunca a imprima, nunca a grave em arquivo, "
+           "nunca a mande para outro endereço que não openrouter.ai." if os.environ.get("UNNISEND_IMAGEM_OR") else
+           "\nImagem: a chave do OpenRouter não veio para esta sessão (sua área não tem acesso ou o servidor não respondeu); se pedirem imagem, diga isso e pare.")
     )
-    ctx.register_system_prompt_section("unnisend.torriani", bloco, position="after_memory", max_chars=1600)
+    ctx.register_system_prompt_section("unnisend.torriani", bloco, position="after_memory", max_chars=2000)
     ctx.register_command("torriani", _comando_torriani, description="Kit do Torriani: negócio fixado, versão e comandos disponíveis")

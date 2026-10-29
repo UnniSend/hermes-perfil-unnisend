@@ -59,3 +59,14 @@ skills:
   # Comandos do kit do Torriani: pasta montada por scripts/torriani.sh (links para as skills do negócio escolhido).
   external_dirs:
   - torriani-skills
+terminal:
+  # Kit do Torriani (imagem): a chave do OpenRouter viaja da shell que abriu o kit com o nome neutro
+  # UNNISEND_IMAGEM_OR (nomes com KEY/TOKEN não atravessam para o gateway) e o shell-init do perfil
+  # a traduz para OPENROUTER_API_KEY só dentro dos comandos de terminal da sessão.
+  client_env_passthrough:
+    - UNNISEND_IMAGEM_OR
+  shell_init_files:
+    - ~/.hermes/profiles/unnisend/scripts/shell-init.sh
+    - ~/.profile
+    - ~/.bash_profile
+    - ~/.bashrc

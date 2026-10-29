@@ -127,6 +127,28 @@ export UNNISEND_AGENTE="${UNNISEND_AGENTE:-ryan}"
 # buscar-arquivo.sh (deste perfil) no PATH da sessão: o assistente baixa do GitHub só o arquivo que for usar
 chmod +x "$P/scripts/buscar-arquivo.sh" 2>/dev/null || true
 export PATH="$P/scripts:$PATH"
-diga "Kit do Torriani $VERSAO, negócio $NEG, $N_SKILLS comandos (digite /${NEG}-copy, /${NEG}-trafego... ou /torriani para a lista)."
+# 5) Geração de imagem (política 1.1 do Torriani): a chave do OpenRouter da empresa vem do porteiro, por área, e entra
+# na sessão só como OPENROUTER_API_KEY dos comandos de terminal (o Hermes bloqueia esse nome no ambiente herdado,
+# por isso ela viaja com nome neutro e é traduzida pelo shell-init do perfil). Nada vai para arquivo.
+IMG_RESP="$(curl -sS --max-time 25 -H "Authorization: Bearer $(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" | cut -d= -f2-)" "$PORTEIRO/ferramentas/imagem-openrouter" 2>/dev/null || true)"
+IMG_KEY="$(printf '%s' "$IMG_RESP" | python3 -c '
+import json,sys,base64
+try: d=json.load(sys.stdin)
+except Exception: sys.exit(0)
+s=d.get("segredo_base64")
+if s: print(base64.b64decode(s).decode().strip())
+')"
+unset IMG_RESP
+if [ -n "$IMG_KEY" ]; then
+  # O chat roda no gateway do Hermes: do ambiente desta shell só viajam nomes de ferramenta sem cara de segredo
+  # (terminal.client_env_passthrough do perfil lista UNNISEND_IMAGEM_OR). Dentro da sessão, o arquivo de início
+  # do shell do perfil (terminal.shell_init_files) traduz para OPENROUTER_API_KEY e some com o nome neutro.
+  export UNNISEND_IMAGEM_OR="$IMG_KEY"
+  IMAGEM="imagem ligada"
+else
+  IMAGEM="imagem desligada (sua área não tem, ou o servidor não respondeu)"
+fi
+unset IMG_KEY
+diga "Kit do Torriani $VERSAO, negócio $NEG, $N_SKILLS comandos (digite /${NEG}-copy, /${NEG}-trafego... ou /torriani para a lista); $IMAGEM."
 cd "$REPO_DIR/ContextOS"
 exec hermes -p "$PERFIL" chat
