@@ -3,7 +3,8 @@
 $ErrorActionPreference = "Stop"
 $Repo = "github.com/UnniSend/hermes-perfil-unnisend"
 $Perfil = "unnisend"
-$HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } else { Join-Path $HOME ".hermes" }
+# No Windows o Hermes guarda tudo em %LOCALAPPDATA%\hermes (não em ~\.hermes). HERMES_HOME, se definido, manda.
+$HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } elseif ($env:LOCALAPPDATA) { Join-Path $env:LOCALAPPDATA "hermes" } else { Join-Path $HOME "AppData\Local\hermes" }
 $EnvPerfil = Join-Path $HermesHome "profiles\$Perfil\.env"
 
 function Diga($t) { Write-Host "`n$t" -ForegroundColor Cyan }
@@ -30,9 +31,13 @@ if (Test-Path (Join-Path $HermesHome "profiles\$Perfil")) {
 # 3) Chave pessoal
 $temChave = (Test-Path $EnvPerfil) -and (Select-String -Path $EnvPerfil -Pattern '^UNNISEND_OMNIROUTE_KEY=sk-' -Quiet)
 if (-not $temChave) {
-  Diga "Cole a sua chave pessoal do OmniRoute da UnniSend (o Israel te enviou; começa com sk-)."
-  $segura = Read-Host -Prompt "Chave" -AsSecureString
-  $chave = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura))
+  if ($env:UNNISEND_OMNIROUTE_KEY) {
+    $chave = $env:UNNISEND_OMNIROUTE_KEY.Trim()
+  } else {
+    Diga "Cole a sua chave pessoal do OmniRoute da UnniSend (o Israel te enviou; começa com sk-)."
+    $segura = Read-Host -Prompt "Chave" -AsSecureString
+    $chave = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura))
+  }
   if (-not $chave.StartsWith("sk-")) { Write-Host "Isso não parece uma chave (precisa começar com sk-)."; exit 1 }
   New-Item -ItemType Directory -Force -Path (Split-Path $EnvPerfil) | Out-Null
   $linhas = @()
@@ -62,8 +67,27 @@ $bin = Join-Path $HOME ".local\bin"; New-Item -ItemType Directory -Force -Path $
 @'
 @echo off
 hermes profile update unnisend -y --force-config >nul 2>&1
+if "%~1"=="torriani" (shift & goto torriani)
 if "%~1"=="" (hermes -p unnisend chat) else (hermes -p unnisend %*)
+goto :eof
+:torriani
+call "%~dp0torriani.cmd" %1 %2
 '@ | Set-Content -Path (Join-Path $bin "unnisend.cmd") -Encoding ascii
+# torriani send | unni: o kit roda no Git Bash (o mesmo que o Hermes usa para o terminal no Windows).
+@'
+@echo off
+setlocal
+hermes profile update unnisend -y --force-config >nul 2>&1
+set "BASH="
+for %%G in ("%ProgramFiles%\Git\bin\bash.exe" "%ProgramFiles(x86)%\Git\bin\bash.exe" "%LOCALAPPDATA%\Programs\Git\bin\bash.exe") do if not defined BASH if exist %%G set "BASH=%%~G"
+if not defined BASH for /f "delims=" %%G in ('where bash.exe 2^>nul') do if not defined BASH set "BASH=%%G"
+if not defined BASH for /f "delims=" %%G in ('dir /b /s "%LOCALAPPDATA%\hermes\tools\*bash.exe" 2^>nul') do if not defined BASH set "BASH=%%G"
+if not defined BASH (echo Nao achei o Git Bash neste computador. Instale o Git for Windows ^(git-scm.com^) e rode de novo. & exit /b 1)
+if defined HERMES_HOME set "HERMES_HOME_SET=1"
+set "HH=%HERMES_HOME%"
+if not defined HH set "HH=%LOCALAPPDATA%\hermes"
+"%BASH%" -lc "exec bash \"$(cygpath -u '%HH%')/profiles/unnisend/scripts/torriani.sh\" %1"
+'@ | Set-Content -Path (Join-Path $bin "torriani.cmd") -Encoding ascii
 $userPath = [Environment]::GetEnvironmentVariable("Path","User")
 if ($userPath -notlike "*$bin*") { [Environment]::SetEnvironmentVariable("Path", "$bin;$userPath", "User") }
 
@@ -73,7 +97,7 @@ $k = (Get-Content $EnvPerfil | Where-Object { $_ -match '^UNNISEND_OMNIROUTE_KEY
 try {
   $r = Invoke-WebRequest -Uri "https://omniroute.unnichat.com.br/v1/models" -Headers @{ Authorization = "Bearer $k" } -UseBasicParsing -TimeoutSec 20
   $k = $null
-  if ($r.StatusCode -eq 200) { Diga "Tudo certo. Para usar, entre na pasta do projeto e rode:  unnisend chat" }
+  if ($r.StatusCode -eq 200) { Diga "Tudo certo. Feche e abra o PowerShell de novo. Kit do Torriani: torriani send (SendFlow) ou torriani unni (UnniChat). Assistente da empresa na pasta atual: unnisend" }
 } catch {
   $k = $null
   Write-Host "A chave não foi aceita. Confira com o Israel se a chave está ativa e rode este comando de novo."; exit 1

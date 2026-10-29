@@ -67,6 +67,7 @@ terminal:
     - UNNISEND_IMAGEM_OR
   shell_init_files:
     - ~/.hermes/profiles/unnisend/scripts/shell-init.sh
+    - ${LOCALAPPDATA}/hermes/profiles/unnisend/scripts/shell-init.sh
     - ~/.profile
     - ~/.bash_profile
     - ~/.bashrc

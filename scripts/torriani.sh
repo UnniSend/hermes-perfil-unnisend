@@ -20,6 +20,11 @@ case "$NEG" in
 esac
 
 HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*)
+  # Git Bash no Windows: o Hermes guarda o perfil em %LOCALAPPDATA%\hermes; caminhos C:\... viram /c/... para o bash.
+  [ -n "${HERMES_HOME_SET:-}" ] || HERMES_HOME="$(cygpath -u "${LOCALAPPDATA:-$HOME/AppData/Local}")/hermes"
+  case "$HERMES_HOME" in [A-Za-z]:*) HERMES_HOME="$(cygpath -u "$HERMES_HOME")" ;; esac ;;
+esac
 PERFIL="unnisend"
 P="$HERMES_HOME/profiles/$PERFIL"
 ENV_PERFIL="$P/.env"
@@ -29,7 +34,10 @@ CHAVE_SSH="$P/chaves/torriani_ed25519"
 SKILLS_DIR="$P/torriani-skills"
 
 diga() { printf '\n\033[1;36m%s\033[0m\n' "$*"; }
-for b in git curl python3; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
+case "$(uname -s 2>/dev/null)" in MINGW*|MSYS*|CYGWIN*) WINDOWS=1 ;; *) WINDOWS=0 ;; esac
+PY=python3; command -v python3 >/dev/null 2>&1 || PY=python   # no Windows o Python do sistema costuma se chamar python
+for b in git curl "$PY"; do command -v "$b" >/dev/null 2>&1 || { echo "Falta o programa '$b' no seu computador. Fale com o Israel."; exit 1; }; done
+command -v hermes >/dev/null 2>&1 || { echo "O comando hermes não está no PATH deste terminal. Feche e abra o terminal de novo."; exit 1; }
 
 CHAVE="$(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" 2>/dev/null | cut -d= -f2- || true)"
 [ -n "$CHAVE" ] || { echo "Sua chave do OmniRoute não está no perfil. Rode o instalador do perfil de novo."; exit 1; }
@@ -38,7 +46,7 @@ CHAVE="$(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" 2>/dev/null | cut -d= -f2
 diga "Pedindo ao porteiro da empresa o acesso ao kit do Torriani..."
 RESP="$(curl -sS --max-time 25 -H "Authorization: Bearer $CHAVE" "$PORTEIRO/ferramentas/repo-torriani" || true)"
 unset CHAVE
-PARSE="$(printf '%s' "$RESP" | python3 -c '
+PARSE="$(printf '%s' "$RESP" | "$PY" -c '
 import json,sys
 try: d=json.load(sys.stdin)
 except Exception: print("ERRO porteiro sem resposta"); sys.exit(0)
@@ -63,7 +71,7 @@ unset SEGREDO_B64
 chmod 600 "$CHAVE_SSH"
 
 # 2) Repositório: clone reduzido (sem outputs/, sem LFS) ou atualização
-export GIT_SSH_COMMAND="ssh -i $CHAVE_SSH -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
+export GIT_SSH_COMMAND="ssh -i '$CHAVE_SSH' -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new"
 export GIT_LFS_SKIP_SMUDGE=1
 REMOTO="git@github.com:UnniSend/consultoria-torriani.git"
 # O que chega ao computador (Caminho C, decisão do Israel em 28/10/2026, substitui o "tudo da marca" da 0.4.0):
@@ -116,7 +124,9 @@ N_LOGOS="$(find "$REPO_DIR"/ContextOS/negocios/"$NEG"/CerebroOS/marca -name '*.s
 # 3) Comandos de barra: só as skills do negócio escolhido (+ me-guia), por link simbólico; nada é copiado
 rm -rf "$SKILLS_DIR"; mkdir -p "$SKILLS_DIR"
 for s in "$REPO_DIR"/ContextOS/.agents/skills/"$NEG"-* "$REPO_DIR"/ContextOS/.agents/skills/me-guia; do
-  [ -f "$s/SKILL.md" ] && ln -s "$s" "$SKILLS_DIR/$(basename "$s")"
+  if [ -f "$s/SKILL.md" ]; then
+    if [ "$WINDOWS" = 1 ]; then cp -R "$s" "$SKILLS_DIR/$(basename "$s")"; else ln -s "$s" "$SKILLS_DIR/$(basename "$s")"; fi
+  fi
 done
 N_SKILLS="$(ls "$SKILLS_DIR" | wc -l | tr -d ' ')"
 
@@ -131,7 +141,7 @@ export PATH="$P/scripts:$PATH"
 # na sessão só como OPENROUTER_API_KEY dos comandos de terminal (o Hermes bloqueia esse nome no ambiente herdado,
 # por isso ela viaja com nome neutro e é traduzida pelo shell-init do perfil). Nada vai para arquivo.
 IMG_RESP="$(curl -sS --max-time 25 -H "Authorization: Bearer $(grep '^UNNISEND_OMNIROUTE_KEY=' "$ENV_PERFIL" | cut -d= -f2-)" "$PORTEIRO/ferramentas/imagem-openrouter" 2>/dev/null || true)"
-IMG_KEY="$(printf '%s' "$IMG_RESP" | python3 -c '
+IMG_KEY="$(printf '%s' "$IMG_RESP" | "$PY" -c '
 import json,sys,base64
 try: d=json.load(sys.stdin)
 except Exception: sys.exit(0)
@@ -151,4 +161,5 @@ fi
 unset IMG_KEY
 diga "Kit do Torriani $VERSAO, negócio $NEG, $N_SKILLS comandos (digite /${NEG}-copy, /${NEG}-trafego... ou /torriani para a lista); $IMAGEM."
 cd "$REPO_DIR/ContextOS"
+if [ "$WINDOWS" = 1 ]; then hermes -p "$PERFIL" chat; exit $?; fi
 exec hermes -p "$PERFIL" chat

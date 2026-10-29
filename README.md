@@ -10,9 +10,11 @@ Mac ou Linux (Ubuntu, Fedora, Arch...), no Terminal:
 
     curl -fsSL https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.sh | bash
 
-Windows, no PowerShell:
+Windows, no PowerShell (com a chave já na linha, igual ao Mac):
 
-    irm https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.ps1 | iex
+    $env:UNNISEND_OMNIROUTE_KEY="sk-..."; irm https://raw.githubusercontent.com/UnniSend/hermes-perfil-unnisend/main/instalar.ps1 | iex
+
+Sem a chave na linha, o instalador pede a chave no final. Depois, feche e abra o PowerShell: `torriani send`, `torriani unni` ou `unnisend` funcionam igual ao Mac (o kit roda no Git Bash que o Hermes instala).
 
 O instalador instala o Hermes (se faltar; leva de 3 a 8 minutos e pode parecer parado no download), baixa este perfil e pede a sua chave pessoal, que o Israel entrega a cada pessoa por DM. Se o campo da chave não aparecer (acontece em alguns terminais quando se roda por `curl | bash`), passe a chave na variável:
 
