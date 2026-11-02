@@ -58,7 +58,7 @@ if (-not $temChave -or $env:UNNISEND_OMNIROUTE_KEY) {
   if (-not $chave.StartsWith("sk-")) { Write-Host "Isso não parece uma chave (precisa começar com sk-). Rode este comando de novo e cole a chave inteira." -ForegroundColor Yellow; return }
   New-Item -ItemType Directory -Force -Path (Split-Path $EnvPerfil) | Out-Null
   $linhas = @()
-  if (Test-Path $EnvPerfil) { $linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^UNNISEND_OMNIROUTE_KEY=' } }
+  if (Test-Path $EnvPerfil) { $linhas = @(Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^UNNISEND_OMNIROUTE_KEY=' }) }
   $linhas += "UNNISEND_OMNIROUTE_KEY=$chave"
   Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
   $chave = $null
@@ -66,8 +66,9 @@ if (-not $temChave -or $env:UNNISEND_OMNIROUTE_KEY) {
 
 # 3b) Memoria da empresa: o plugin hindsight le a chave em HINDSIGHT_API_KEY e o .env nao expande ${...};
 # gravamos a MESMA chave pessoal nessa variavel. Nada novo entra no computador.
+# @(...) e obrigatorio: com UMA linha no arquivo, Get-Content devolve texto e o += colava as duas chaves na mesma linha (401 no Windows, 02/11).
 $chaveAtual = ((Get-Content $EnvPerfil | Where-Object { $_ -match '^UNNISEND_OMNIROUTE_KEY=' }) -replace '^UNNISEND_OMNIROUTE_KEY=','')
-$linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^HINDSIGHT_API_KEY=' }
+$linhas = @(Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^HINDSIGHT_API_KEY=' })
 $linhas += "HINDSIGHT_API_KEY=$chaveAtual"
 Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
 $chaveAtual = $null
@@ -125,7 +126,7 @@ if ($codigo -eq 0 -and $saida -match 'funcionando') {
   Diga "Tudo certo: o Hermes respondeu pelo OmniRoute com a sua chave. Feche e abra o PowerShell. Assistente da empresa na pasta atual: unnisend. Kit do Torriani: torriani send (SendFlow) ou torriani unni (UnniChat)."
 } elseif ($saida -match '401|Invalid API key|AUTH_00') {
   # Tira a chave recusada do perfil: senão a próxima instalação acha que já tem chave e não pergunta de novo.
-  $linhas = Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' }
+  $linhas = @(Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' })
   Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
   Write-Host "A chave não foi aceita pelo OmniRoute. Confira com o Israel se a chave está certa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
 } else {
