@@ -35,12 +35,23 @@ if (-not $HermesHome) {
 $EnvPerfil = Join-Path $HermesHome "profiles\$Perfil\.env"
 
 # 2) Perfil da empresa
-if (Test-Path (Join-Path $HermesHome "profiles\$Perfil")) {
+# Num PC zerado o Hermes recem-instalado pode deixar a pasta do perfil SEM distribution.yaml (visto na VM Windows em 02/11:
+# "Profile exists but is NOT a distribution"); dai o update recusa e o teste final diz "isn't configured yet". Por isso:
+# perfil com distribution.yaml = update; qualquer outro caso = install --force (o .env com a chave e preservado).
+$PastaPerfil = Join-Path $HermesHome "profiles\$Perfil"
+if (Test-Path (Join-Path $PastaPerfil "distribution.yaml")) {
   Diga "Atualizando o perfil $Perfil..."
   hermes profile update $Perfil -y --force-config
+} elseif (Test-Path $PastaPerfil) {
+  Diga "Instalando o perfil $Perfil (a pasta existia incompleta)..."
+  hermes profile install $Repo --alias -y --force
 } else {
   Diga "Instalando o perfil $Perfil..."
   hermes profile install $Repo --alias -y
+}
+if (-not (Test-Path (Join-Path $PastaPerfil "distribution.yaml"))) {
+  Diga "O perfil não ficou completo na primeira tentativa; tentando de novo..."
+  hermes profile install $Repo --alias -y --force
 }
 
 # 3) Chave pessoal

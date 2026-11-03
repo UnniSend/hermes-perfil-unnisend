@@ -22,12 +22,21 @@ export PATH="$HOME/.local/bin:$PATH"
 command -v hermes >/dev/null 2>&1 || { echo "O Hermes não ficou disponível no PATH. Feche e abra o terminal e rode este comando de novo."; exit 1; }
 
 # 2) Perfil da empresa (instala ou atualiza; suas conversas e chave não são tocadas)
-if [ -d "$HERMES_HOME/profiles/$PERFIL" ]; then
+# Pasta do perfil sem distribution.yaml (perfil incompleto, visto no Windows em 02/11) = install --force, porque o update recusa.
+PASTA_PERFIL="$HERMES_HOME/profiles/$PERFIL"
+if [ -f "$PASTA_PERFIL/distribution.yaml" ]; then
   diga "Atualizando o perfil $PERFIL..."
   hermes profile update "$PERFIL" -y --force-config || true
+elif [ -d "$PASTA_PERFIL" ]; then
+  diga "Instalando o perfil $PERFIL (a pasta existia incompleta)..."
+  hermes profile install "$REPO" --alias -y --force
 else
   diga "Instalando o perfil $PERFIL..."
   hermes profile install "$REPO" --alias -y
+fi
+if [ ! -f "$PASTA_PERFIL/distribution.yaml" ]; then
+  diga "O perfil não ficou completo na primeira tentativa; tentando de novo..."
+  hermes profile install "$REPO" --alias -y --force || true
 fi
 
 # 3) Chave pessoal (só se ainda não tiver)
