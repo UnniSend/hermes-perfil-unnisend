@@ -1,5 +1,5 @@
 name: unnisend
-version: 0.4.11
+version: 0.5.0
 description: 'Assistente de trabalho da UnniSend: Hermes no computador do membro,
   IA pelo OmniRoute central da empresa'
 hermes_requires: '>=0.21.0'
@@ -27,5 +27,7 @@ distribution_owned:
   - scripts/shell-init.sh
   - agentes
   - skills/transcricao-vibe
+  - skins/unnisend.yaml
+  - docs/guia-2-minutos.md
 source: github.com/UnniSend/hermes-perfil-unnisend
 installed_at: '2026-10-08T13:54:01+00:00'

@@ -2,28 +2,35 @@ _config_version: 49
 model:
   provider: custom
   base_url: https://omniroute.unnichat.com.br/v1
+  # Formato nativo da Anthropic (/v1/messages), o mesmo que o Claude Code usa: thinking de verdade,
+  # cache de prompt e max_tokens altos. Provado no call-log em 05/11 (Chief).
+  api_mode: anthropic_messages
   default: unnisend/sonnet
   key_env: UNNISEND_OMNIROUTE_KEY
 custom_providers:
 - name: OmniRoute UnniSend
   base_url: https://omniroute.unnichat.com.br/v1
+  api_mode: anthropic_messages
   key_env: UNNISEND_OMNIROUTE_KEY
   model: unnisend/sonnet
+  # prompt_caching: o Hermes so liga o cache de prompt sozinho quando o nome do modelo tem 'claude'; os apelidos
+  # unnisend/*, copy/* e designer/* ficariam sem cache (pagando o prompt inteiro a cada turno). Provado 05/11:
+  # com a marca, o 2o turno leu 44 mil tokens do cache. auto/best-vision fica sem (nao e Claude garantido).
   models:
-    unnisend/sonnet: {}
-    unnisend/opus: {}
-    unnisend/haiku: {}
-    claude/claude-sonnet-5-5: {}
-    claude/claude-opus-5-5: {}
-    claude/claude-haiku-5-5: {}
-    claude/claude-sonnet-5: {}
-    claude/claude-opus-5: {}
-    claude/claude-sonnet-4-6: {}
-    claude/claude-haiku-4-5-20251001: {}
-    copy/melhor: {}
-    copy/economico: {}
-    designer/melhor: {}
-    designer/economico: {}
+    unnisend/sonnet: {prompt_caching: true}
+    unnisend/opus: {prompt_caching: true}
+    unnisend/haiku: {prompt_caching: true}
+    claude/claude-sonnet-5-5: {prompt_caching: true}
+    claude/claude-opus-5-5: {prompt_caching: true}
+    claude/claude-haiku-5-5: {prompt_caching: true}
+    claude/claude-sonnet-5: {prompt_caching: true}
+    claude/claude-opus-5: {prompt_caching: true}
+    claude/claude-sonnet-4-6: {prompt_caching: true}
+    claude/claude-haiku-4-5-20251001: {prompt_caching: true}
+    copy/melhor: {prompt_caching: true}
+    copy/economico: {prompt_caching: true}
+    designer/melhor: {prompt_caching: true}
+    designer/economico: {prompt_caching: true}
     auto/best-vision: {}
 auxiliary:
   vision:
@@ -41,6 +48,9 @@ auxiliary:
     language: pt-BR
 agent:
   language: pt-BR
+  # Esforço de raciocínio alto, como o Claude Code manda (output_config.effort high). Custa mais tokens de
+  # saída em tarefa difícil; em pergunta simples o modelo pensa pouco mesmo assim.
+  reasoning_effort: high
 memory:
   memory_enabled: true
   user_profile_enabled: true
@@ -92,3 +102,9 @@ quick_commands:
     type: alias
     target: /model designer/economico
     description: 'Design: custo-benefício (Sonnet 5.5)'
+
+# Tela: modo foco por padrão (só pedido e resposta; /focus off mostra o andamento das ferramentas).
+# A escolha da pessoa é preservada pelo plugin unnisend_atualiza quando o perfil atualiza.
+display:
+  focus_view: true
+  skin: unnisend

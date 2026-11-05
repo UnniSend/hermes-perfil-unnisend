@@ -64,6 +64,7 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
         try:
             env = dict(os.environ)
             env.pop("HERMES_HOME", None)
+            escolhas = _ler_escolhas_de_tela()
             # Usa o mesmo Python em que o Hermes está rodando (o venv dele), nunca o python do sistema.
             r = subprocess.run(
                 [sys.executable, "-m", "hermes_cli.main", "profile", "update", PERFIL, "-y", "--force-config"],
@@ -76,10 +77,12 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
                     env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=180, check=False,
                 )
             ok = r.returncode == 0 and _versao_instalada() == nova
+            if ok:
+                _reaplicar_escolhas_de_tela(escolhas)
             with _trava:
                 _estado["aviso"] = (
                     f"[Perfil da UnniSend atualizado para a versão {nova} em segundo plano. "
-                    "Regras e agentes novos valem a partir da próxima conversa; suas mensagens e sua chave não mudaram.]"
+                    "Regras e agentes novos valem a partir da próxima conversa; suas mensagens, sua chave e suas escolhas de tela não mudaram.]"
                     if ok else
                     f"[Há uma versão nova do perfil da UnniSend ({nova}), mas a atualização automática falhou. "
                     "Feche e abra o unnisend; se continuar, avise o Israel.]"
@@ -90,6 +93,70 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
             with _trava:
                 _estado["atualizando"] = False
     threading.Thread(target=_rodar, name="unnisend-atualiza", daemon=True).start()
+
+
+# Chaves do config.yaml que a PESSOA muda pela tela (/focus, /verbose, /reasoning, /stream, skin) e que a
+# atualização com --force-config apagaria. São lidas antes e regravadas depois, linha a linha, sem YAML
+# externo (o perfil não pode depender de pacote que a máquina da pessoa talvez não tenha).
+_CHAVES_DE_TELA = ("focus_view", "focus_saved_tool_progress", "tool_progress", "show_reasoning", "streaming", "skin", "compact")
+
+
+def _ler_escolhas_de_tela() -> dict[str, str]:
+    """Valores atuais das chaves de tela no bloco display: do config.yaml do perfil."""
+    escolhas: dict[str, str] = {}
+    try:
+        dentro = False
+        for linha in (_home() / "config.yaml").read_text(encoding="utf-8").splitlines():
+            if linha.startswith("display:"):
+                dentro = True
+                continue
+            if dentro and linha and not linha.startswith((" ", "\t")):
+                break
+            if dentro:
+                chave, sep, valor = linha.strip().partition(":")
+                if sep and chave in _CHAVES_DE_TELA:
+                    escolhas[chave] = valor.split("#", 1)[0].strip()
+    except Exception:
+        pass
+    return escolhas
+
+
+def _reaplicar_escolhas_de_tela(escolhas: dict[str, str]) -> None:
+    """Regrava no config.yaml novo as chaves de tela que a pessoa tinha. Chave que o repo passou a
+    definir e a pessoa nunca mexeu continua vindo do repo (só reaplica o que existia localmente)."""
+    if not escolhas:
+        return
+    try:
+        caminho = _home() / "config.yaml"
+        linhas = caminho.read_text(encoding="utf-8").splitlines()
+        saida, dentro, vistas, tem_display = [], False, set(), False
+        for linha in linhas:
+            if linha.startswith("display:"):
+                dentro, tem_display = True, True
+                saida.append(linha)
+                continue
+            if dentro and linha and not linha.startswith((" ", "\t")):
+                for chave in _CHAVES_DE_TELA:
+                    if chave in escolhas and chave not in vistas:
+                        saida.append(f"  {chave}: {escolhas[chave]}")
+                dentro = False
+            if dentro:
+                chave = linha.strip().partition(":")[0]
+                if chave in escolhas:
+                    saida.append(f"  {chave}: {escolhas[chave]}")
+                    vistas.add(chave)
+                    continue
+            saida.append(linha)
+        if dentro:  # display: era o último bloco do arquivo
+            for chave in _CHAVES_DE_TELA:
+                if chave in escolhas and chave not in vistas:
+                    saida.append(f"  {chave}: {escolhas[chave]}")
+        if not tem_display:
+            saida.append("display:")
+            saida.extend(f"  {chave}: {escolhas[chave]}" for chave in _CHAVES_DE_TELA if chave in escolhas)
+        caminho.write_text("\n".join(saida) + "\n", encoding="utf-8")
+    except Exception:
+        pass
 
 
 def _pre_llm_call(**kw):

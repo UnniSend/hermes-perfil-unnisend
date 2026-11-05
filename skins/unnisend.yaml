@@ -1,0 +1,11 @@
+name: unnisend
+description: Tela da UnniSend. Sua mensagem com "Você ❯" em verde; o resto segue o padrão.
+colors:
+  ui_accent: "#4ade80"
+  response_border: "#FFD700"
+branding:
+  agent_name: "Manada"
+  welcome: "Manada pronta. Escreva o que precisa, ou /me-guia para ver o que posso fazer."
+  goodbye: "Até logo."
+  response_label: " ☤ Manada "
+  prompt_symbol: "Você ❯"
