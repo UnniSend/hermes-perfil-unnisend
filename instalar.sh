@@ -40,16 +40,25 @@ if [ ! -f "$PASTA_PERFIL/distribution.yaml" ]; then
 fi
 
 # 3) Chave pessoal (só se ainda não tiver)
-if ! grep -qs '^UNNISEND_OMNIROUTE_KEY=sk-' "$ENV_PERFIL" 2>/dev/null; then
+# Chave gravada com "*" (a escondida do painel) conta como "sem chave": pergunta de novo em vez de pular.
+if ! grep -qs '^UNNISEND_OMNIROUTE_KEY=sk-' "$ENV_PERFIL" 2>/dev/null || grep -qs '^UNNISEND_OMNIROUTE_KEY=.*\*' "$ENV_PERFIL" 2>/dev/null; then
   # Variável de ambiente pula a pergunta (útil para quem roda por curl | bash ou em servidor):
   #   UNNISEND_OMNIROUTE_KEY=sk-... bash instalar.sh
   CHAVE="${UNNISEND_OMNIROUTE_KEY:-}"
   TENTATIVAS=0
-  while ! case "$CHAVE" in sk-*) true;; *) false;; esac; do
+  # Chave válida: começa com sk-, sem "*" e com 30+ caracteres. O painel do OmniRoute mostra a chave ESCONDIDA
+  # ("sk-xxxx****xxxx", 16 caracteres); colar essa versão instalava "com sucesso" e dava 401 no primeiro uso (06/11).
+  chave_ok() { case "$1" in sk-*) :;; *) return 1;; esac; case "$1" in *\**) return 1;; esac; [ "${#1}" -ge 30 ]; }
+  while ! chave_ok "$CHAVE"; do
     if [ "$TENTATIVAS" -ge 3 ]; then
       echo "Não recebi uma chave válida. Rode de novo com a chave na variável:  UNNISEND_OMNIROUTE_KEY=sk-... bash <(curl -fsSL https://raw.githubusercontent.com/$REPO/main/instalar.sh)"; exit 1
     fi
-    if [ "$TENTATIVAS" -gt 0 ]; then echo "Isso não parece uma chave (precisa começar com sk- e vir sem espaços). Tente de novo."; fi
+    if [ "$TENTATIVAS" -gt 0 ] || [ -n "$CHAVE" ]; then
+      case "$CHAVE" in
+        *\**) echo "Essa é a chave escondida do painel, com asteriscos. Cole a chave completa que o Israel te mandou no privado (ela tem mais de 30 caracteres e nenhum *).";;
+        *) echo "Isso não parece uma chave (precisa começar com sk-, ter mais de 30 caracteres e vir sem espaços). Tente de novo.";;
+      esac
+    fi
     diga "Cole a sua chave pessoal do OmniRoute da UnniSend (o Israel te enviou por DM; começa com sk-) e dê Enter."
     printf 'Chave: '
     # curl | bash deixa o stdin ocupado pelo script; lê do terminal quando existe um de verdade
@@ -115,6 +124,13 @@ CODIGO="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 -H "Authorization
 unset CHAVE_TESTE
 if [ "$CODIGO" = "200" ]; then
   diga "Tudo certo. Para usar, entre na pasta do projeto e rode:  unnisend chat"
+elif [ "$CODIGO" = "401" ] || [ "$CODIGO" = "403" ]; then
+  # Tira a chave recusada do perfil: senão a próxima instalação acha que já tem chave e não pergunta de novo.
+  # (grep -v devolve 1 quando não sobra linha; com set -e isso matava o script antes de apagar a chave)
+  { grep -v -E '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' "$ENV_PERFIL" || true; } > "$ENV_PERFIL.tmp"
+  mv "$ENV_PERFIL.tmp" "$ENV_PERFIL"; chmod 600 "$ENV_PERFIL"
+  echo "A CHAVE NÃO FOI ACEITA pelo OmniRoute (resposta $CODIGO). Se você colou a chave do painel, com asteriscos, ela não vale: peça ao Israel a chave completa e rode este comando de novo (ele vai pedir a chave outra vez)."
+  exit 1
 else
   echo "A chave não foi aceita (resposta $CODIGO). Confira com o Israel se a chave está ativa e rode este comando de novo."
   exit 1

@@ -224,10 +224,34 @@ def _quem_sou() -> str:
     return texto
 
 
+def _chave_no_env() -> str:
+    """Chave do OmniRoute como está gravada (ambiente ou .env do perfil), para diagnosticar o /eu."""
+    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or ""
+    if not chave:
+        try:
+            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
+                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
+                    chave = linha.split("=", 1)[1].strip().strip('"').strip("'")
+                    break
+        except OSError:
+            pass
+    return chave
+
+
 def _comando_eu(raw: str) -> str:
     _QUEM_CACHE["ate"] = 0.0
     t = _quem_sou()
-    return t.split(". Dado vem")[0] if t else "Não consegui identificar você pelo porteiro (memoria.unnichat.com.br). Confira a chave no .env do perfil ou fale com o Israel."
+    if t:
+        return t.split(". Dado vem")[0]
+    chave = _chave_no_env()
+    # Chave escondida do painel do OmniRoute ("sk-xxxx****xxxx"): instalada por engano, recusada pelo porteiro (06/11).
+    if "*" in chave or (chave and len(chave) < 30):
+        return ("A chave gravada neste computador é a versão escondida do painel, com asteriscos (ou está incompleta). "
+                "Ela não vale. Peça ao Israel a chave completa no privado e rode o comando de instalação de novo, "
+                "que ele pede a chave outra vez.")
+    if not chave:
+        return "Não achei a chave do OmniRoute neste perfil (UNNISEND_OMNIROUTE_KEY no .env). Rode o comando de instalação de novo."
+    return "Não consegui identificar você pelo porteiro (memoria.unnichat.com.br). Confira a chave no .env do perfil ou fale com o Israel."
 
 
 def _ler_chave() -> str:

@@ -55,7 +55,8 @@ if (-not (Test-Path (Join-Path $PastaPerfil "distribution.yaml"))) {
 }
 
 # 3) Chave pessoal
-$temChave = (Test-Path $EnvPerfil) -and (Select-String -Path $EnvPerfil -Pattern '^UNNISEND_OMNIROUTE_KEY=sk-' -Quiet)
+# Chave gravada com "*" (a escondida do painel) conta como "sem chave": pergunta de novo em vez de pular.
+$temChave = (Test-Path $EnvPerfil) -and (Select-String -Path $EnvPerfil -Pattern '^UNNISEND_OMNIROUTE_KEY=sk-' -Quiet) -and -not (Select-String -Path $EnvPerfil -Pattern '^UNNISEND_OMNIROUTE_KEY=.*\*' -Quiet)
 # Chave na linha do comando sempre vale (substitui uma chave antiga ou colada errado).
 if (-not $temChave -or $env:UNNISEND_OMNIROUTE_KEY) {
   if ($env:UNNISEND_OMNIROUTE_KEY) {
@@ -66,7 +67,10 @@ if (-not $temChave -or $env:UNNISEND_OMNIROUTE_KEY) {
     $chave = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura))
   }
   $chave = "$chave".Trim()
-  if (-not $chave.StartsWith("sk-")) { Write-Host "Isso não parece uma chave (precisa começar com sk-). Rode este comando de novo e cole a chave inteira." -ForegroundColor Yellow; return }
+  # Chave válida: começa com sk-, sem "*" e com 30+ caracteres. O painel do OmniRoute mostra a chave ESCONDIDA
+  # ("sk-xxxx****xxxx", 16 caracteres); colar essa versão instalava "com sucesso" e dava 401 no primeiro uso (06/11).
+  if ($chave.Contains("*")) { Write-Host "Essa é a chave escondida do painel, com asteriscos. Cole a chave completa que o Israel te mandou no privado (ela tem mais de 30 caracteres e nenhum *). Rode este comando de novo." -ForegroundColor Yellow; return }
+  if (-not $chave.StartsWith("sk-") -or $chave.Length -lt 30) { Write-Host "Isso não parece uma chave (precisa começar com sk- e ter mais de 30 caracteres). Rode este comando de novo e cole a chave inteira." -ForegroundColor Yellow; return }
   New-Item -ItemType Directory -Force -Path (Split-Path $EnvPerfil) | Out-Null
   $linhas = @()
   if (Test-Path $EnvPerfil) { $linhas = @(Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^UNNISEND_OMNIROUTE_KEY=' }) }
@@ -139,7 +143,7 @@ if ($codigo -eq 0 -and $saida -match 'funcionando') {
   # Tira a chave recusada do perfil: senão a próxima instalação acha que já tem chave e não pergunta de novo.
   $linhas = @(Get-Content $EnvPerfil | Where-Object { $_ -notmatch '^(UNNISEND_OMNIROUTE_KEY|HINDSIGHT_API_KEY)=' })
   Set-Content -Path $EnvPerfil -Value $linhas -Encoding ascii
-  Write-Host "A chave não foi aceita pelo OmniRoute. Confira com o Israel se a chave está certa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
+  Write-Host "A CHAVE NÃO FOI ACEITA pelo OmniRoute. Se você colou a chave do painel, com asteriscos, ela não vale: peça ao Israel a chave completa e rode este comando de novo (ele vai pedir a chave outra vez)." -ForegroundColor Yellow; return
 } else {
   Write-Host "O Hermes foi instalado, mas o teste final não respondeu. Mande ao Israel o texto abaixo (não tem a sua chave):" -ForegroundColor Yellow
   Write-Host (($saida -replace 'sk-[A-Za-z0-9_\-]+', 'sk-***').Trim()) -ForegroundColor DarkGray
