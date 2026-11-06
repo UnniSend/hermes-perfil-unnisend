@@ -59,6 +59,21 @@ def _versao_remota() -> str | None:
     return None
 
 
+def _recarregar_plugins_no_gateway(env: dict) -> None:
+    """Os comandos de barra (/eu, /cota, /me-guia) rodam dentro do gateway, que guarda o plugin em memória desde que
+    subiu: sem isto, a versão nova só valia depois de fechar tudo (Myllena, 06/11: /eu velho por horas após o update).
+    disable + enable troca o comando na hora; ganchos novos só entram quando o gateway reiniciar sozinho (ocioso)."""
+    for nome in ("unnisend_agentes", "unnisend_torriani"):
+        for acao in ("disable", "enable"):
+            try:
+                subprocess.run(
+                    [sys.executable, "-m", "hermes_cli.main", "-p", PERFIL, "plugins", acao, nome],
+                    env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60, check=False,
+                )
+            except Exception:
+                pass
+
+
 def _atualizar_em_segundo_plano(nova: str) -> None:
     def _rodar():
         try:
@@ -79,6 +94,7 @@ def _atualizar_em_segundo_plano(nova: str) -> None:
             ok = r.returncode == 0 and _versao_instalada() == nova
             if ok:
                 _reaplicar_escolhas_de_tela(escolhas)
+                _recarregar_plugins_no_gateway(env)
             with _trava:
                 _estado["aviso"] = (
                     f"[Perfil da UnniSend atualizado para a versão {nova} em segundo plano. "
