@@ -31,7 +31,9 @@ from pathlib import Path
 
 AGENTES = ("michael", "buchecha", "dwight", "angela", "holly", "phyllis", "jim", "ryan")
 PADRAO = "michael"
-_HOME = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes" / "profiles" / "unnisend")
+# Pasta do perfil = onde este plugin está instalado (<perfil>/plugins/<nome>/). Não usar HERMES_HOME: dentro do
+# gateway ele aponta para a casa de OUTRO perfil (no Mac do Israel, ~/.hermes), e o plugin lia o .env errado (06/11).
+_HOME = Path(__file__).resolve().parent.parent.parent
 _PASTA = _HOME / "agentes"
 _ESTADO = _HOME / "agentes" / ".ativo"  # nome do agente escolhido por /comando (persistido)
 _RE_NOME = re.compile(r"^\s*@?(michael|buchecha|dwight|angela|holly|phyllis|jim|ryan)\b[\s,:]*", re.I)
@@ -192,15 +194,7 @@ def _quem_sou() -> str:
     if _QUEM_CACHE["ate"] > time.time():
         return _QUEM_CACHE["texto"]
     texto = ""
-    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or os.environ.get("HINDSIGHT_API_KEY") or ""
-    if not chave:
-        try:
-            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
-                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
-                    chave = linha.split("=", 1)[1].strip().strip('"').strip("'")
-                    break
-        except OSError:
-            pass
+    chave = _chave_no_env()
     if chave:
         try:
             import urllib.request
@@ -225,17 +219,19 @@ def _quem_sou() -> str:
 
 
 def _chave_no_env() -> str:
-    """Chave do OmniRoute como está gravada (ambiente ou .env do perfil), para diagnosticar o /eu."""
-    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or ""
-    if not chave:
-        try:
-            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
-                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
-                    chave = linha.split("=", 1)[1].strip().strip('"').strip("'")
-                    break
-        except OSError:
-            pass
-    return chave
+    """Chave do OmniRoute da pessoa: PRIMEIRO o .env do perfil, depois o ambiente.
+    O ambiente vem por último de propósito: quando o comando roda dentro do gateway (Mac do Israel,
+    servidor web), os.environ carrega o .env de OUTRO perfil (HINDSIGHT_API_KEY pessoal), e o /eu
+    perguntava ao porteiro com a chave errada (06/11)."""
+    try:
+        for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
+            if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
+                v = linha.split("=", 1)[1].strip().strip('"').strip("'")
+                if v:
+                    return v
+    except OSError:
+        pass
+    return os.environ.get("UNNISEND_OMNIROUTE_KEY") or ""
 
 
 def _comando_eu(raw: str) -> str:
@@ -255,15 +251,7 @@ def _comando_eu(raw: str) -> str:
 
 
 def _ler_chave() -> str:
-    chave = os.environ.get("UNNISEND_OMNIROUTE_KEY") or ""
-    if not chave:
-        try:
-            for linha in (_HOME / ".env").read_text(encoding="utf-8").splitlines():
-                if linha.startswith("UNNISEND_OMNIROUTE_KEY="):
-                    return linha.split("=", 1)[1].strip().strip('"').strip("'")
-        except OSError:
-            pass
-    return chave
+    return _chave_no_env()  # .env do perfil primeiro; ambiente por último (ver _chave_no_env)
 
 
 def _faltam(iso: str | None) -> str:

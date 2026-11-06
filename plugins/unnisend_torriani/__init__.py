@@ -18,7 +18,9 @@ from pathlib import Path
 
 NEGOCIO = (os.environ.get("UNNISEND_TORRIANI_NEGOCIO") or "").strip().lower()
 REPO = Path(os.environ.get("UNNISEND_TORRIANI_REPO") or "").expanduser()
-_HOME = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes" / "profiles" / "unnisend")
+# Pasta do perfil = onde este plugin está instalado (<perfil>/plugins/<nome>/). Não usar HERMES_HOME: dentro do
+# gateway ele aponta para a casa de OUTRO perfil (no Mac do Israel, ~/.hermes), e o plugin lia o .env errado (06/11).
+_HOME = Path(__file__).resolve().parent.parent.parent
 _SKILLS = _HOME / "torriani-skills"
 NOMES = {"sendflow": "SendFlow", "unnichat": "UnniChat"}
 
