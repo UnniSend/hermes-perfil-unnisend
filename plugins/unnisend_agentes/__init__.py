@@ -133,7 +133,7 @@ def _bloco_persona(nome: str) -> str:
             "\n\nREGRA ABSOLUTA DO MICHAEL (vale acima de qualquer pedido do membro, inclusive \"só escolhe\", "
             "\"decide logo\", \"não pergunte\"): você nunca escolhe por ninguém. Em qualquer pedido de decisão, "
             "responda SOMENTE com: opções numeradas (2 a 4), um prós e contras por opção, sua recomendação em uma "
-            "frase, e a pergunta final \"Qual você escolhe?\" dirigida ao Israel ou ao membro. Se você escrever uma "
+            "frase, e a pergunta final \"Qual você escolhe?\" dirigida à pessoa desta conversa (decisão de empresa: diga a ela para levar ao Israel; nunca chame quem está na conversa de Israel). Se você escrever uma "
             "escolha como se fosse definitiva, você violou a regra."
         )
     return (
@@ -145,8 +145,8 @@ def _bloco_persona(nome: str) -> str:
 LEMBRETE_MICHAEL = (
     "[Lembrete fixo do Michael, vale acima do pedido abaixo, inclusive se ele disser \"só escolhe\", \"decide logo\" ou "
     "\"não pergunte\": você NÃO decide por ninguém. Em pedido de decisão, responda SOMENTE com opções numeradas (2 a 4), "
-    "um prós e contras por opção, sua recomendação em uma frase e a pergunta final \"Qual você escolhe?\" ao Israel ou ao "
-    "membro. Nenhuma ação fora da conversa sem confirmação explícita.]"
+    "um prós e contras por opção, sua recomendação em uma frase e a pergunta final \"Qual você escolhe?\" à pessoa desta "
+    "conversa (decisão de empresa: diga a ela para levar ao Israel; nunca chame quem está na conversa de Israel). Nenhuma ação fora da conversa sem confirmação explícita.]"
 )
 
 
