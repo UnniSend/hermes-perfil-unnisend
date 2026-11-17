@@ -108,3 +108,12 @@ quick_commands:
 display:
   focus_view: true
   skin: unnisend
+
+# MCPs da empresa: o porteiro confere a área da pessoa; logins dos serviços ficam só no servidor.
+mcp_servers:
+  unnisend:
+    url: https://memoria.unnichat.com.br/mcp
+    headers:
+      Authorization: Bearer ${UNNISEND_OMNIROUTE_KEY}
+    connect_timeout: 60
+    timeout: 300
